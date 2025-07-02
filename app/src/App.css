@@ -27,9 +27,82 @@
   color: #fff;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
 .save-status {
   font-size: 12px;
   color: #888;
+}
+
+.undo-redo-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.undo-button,
+.redo-button {
+  padding: 6px 16px;
+  background-color: #444;
+  color: #ddd;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.undo-button:hover:not(:disabled),
+.redo-button:hover:not(:disabled) {
+  background-color: #555;
+  color: #fff;
+}
+
+.undo-button:active:not(:disabled),
+.redo-button:active:not(:disabled) {
+  background-color: #333;
+}
+
+.undo-button:disabled,
+.redo-button:disabled {
+  background-color: #2a2a2a;
+  color: #555;
+  cursor: not-allowed;
+}
+
+.export-button {
+  padding: 8px 20px;
+  background-color: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.export-button:hover:not(:disabled) {
+  background-color: #0052a3;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
+}
+
+.export-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.export-button:disabled {
+  background-color: #444;
+  color: #888;
+  cursor: not-allowed;
 }
 
 .content-area {

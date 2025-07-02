@@ -10,15 +10,22 @@
     "react-build": "cd app && yarn build",
     "electron": "electron .",
     "build": "yarn run react-build && electron-builder",
-    "dist": "yarn run react-build && electron-builder --publish=never"
+    "dist": "yarn run react-build && electron-builder --publish=never",
+    "test": "npx jest && cd app && yarn test --watchAll=false",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage && cd app && yarn test --coverage --watchAll=false",
+    "test:ci": "npx jest --ci --coverage --maxWorkers=2 && cd app && yarn test:ci"
   },
   "keywords": ["electron", "react"],
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "archiver": "^7.0.1",
     "concurrently": "^7.6.0",
     "electron": "^27.0.0",
     "electron-builder": "^24.6.0",
+    "jest": "^29.7.0",
+    "tmp-promise": "^3.0.3",
     "wait-on": "^7.0.0"
   },
   "build": {

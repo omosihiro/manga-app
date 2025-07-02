@@ -11,5 +11,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     electron: process.versions.electron
   },
   saveProject: (data) => ipcRenderer.invoke('save-project', data),
-  loadProject: () => ipcRenderer.invoke('load-project')
+  loadProject: () => ipcRenderer.invoke('load-project'),
+  exportProject: (data) => ipcRenderer.invoke('export-project', data)
 });

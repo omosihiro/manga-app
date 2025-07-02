@@ -1,6 +1,7 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
+const { exportProject } = require('./export');
 
 let mainWindow;
 
@@ -70,6 +71,30 @@ ipcMain.handle('load-project', async (event) => {
       return { success: true, data: null }; // No saved project yet
     }
     console.error('Error loading project:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// IPC handler for export functionality
+ipcMain.handle('export-project', async (event, data) => {
+  try {
+    const exportDir = path.join(app.getPath('userData'), 'export');
+    const result = await exportProject(data, exportDir);
+    
+    if (result.success) {
+      dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        title: 'エクスポート完了',
+        message: `プロジェクトをエクスポートしました`,
+        detail: `保存先: ${result.path}`,
+        buttons: ['OK']
+      });
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Error exporting project:', error);
+    dialog.showErrorBox('エクスポートエラー', `プロジェクトのエクスポート中にエラーが発生しました: ${error.message}`);
     return { success: false, error: error.message };
   }
 });
