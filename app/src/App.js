@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import Sidebar from './components/Sidebar';
 import PagesPanel from './components/PagesPanel';
-import SpeechPanel from './components/SpeechPanel';
+import SpeechTab from './components/SpeechTab';
 import PreviewPanel from './components/PreviewPanel';
 
 function App() {
   const [activeTab, setActiveTab] = useState('Pages');
   const [pages, setPages] = useState([]);
+  const [speechData, setSpeechData] = useState([]);
+  const [language, setLanguage] = useState('ja');
   const [lastSaveTime, setLastSaveTime] = useState(null);
 
   // Load project on startup
@@ -15,18 +17,20 @@ function App() {
     loadProject();
   }, []);
 
-  // Auto-save when pages change
+  // Auto-save when pages or speech data change
   useEffect(() => {
-    if (pages.length > 0) {
+    if (pages.length > 0 || speechData.length > 0) {
       saveProject();
     }
-  }, [pages]);
+  }, [pages, speechData, language]);
 
   const loadProject = async () => {
     if (window.electronAPI && window.electronAPI.loadProject) {
       const result = await window.electronAPI.loadProject();
       if (result.success && result.data) {
         setPages(result.data.pages || []);
+        setSpeechData(result.data.speechData || []);
+        setLanguage(result.data.language || 'ja');
         setLastSaveTime(result.data.lastSaveTime);
       }
     }
@@ -36,6 +40,8 @@ function App() {
     if (window.electronAPI && window.electronAPI.saveProject) {
       const projectData = {
         pages,
+        speechData,
+        language,
         lastSaveTime: new Date().toISOString(),
         version: '1.0.0'
       };
@@ -52,7 +58,14 @@ function App() {
       case 'Pages':
         return <PagesPanel pages={pages} onPagesUpdate={setPages} />;
       case 'Speech':
-        return <SpeechPanel />;
+        return (
+          <SpeechTab 
+            speechData={speechData} 
+            onSpeechDataUpdate={setSpeechData}
+            language={language}
+            onLanguageChange={setLanguage}
+          />
+        );
       case 'Preview':
         return <PreviewPanel pages={pages} />;
       default:
