@@ -1,0 +1,111 @@
+.pages-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.drop-zone {
+  border: 2px dashed #666;
+  border-radius: 10px;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #2a2a2a;
+  margin-bottom: 20px;
+}
+
+.drop-zone:hover {
+  border-color: #888;
+  background-color: #333;
+}
+
+.drop-zone.drag-over {
+  border-color: #0066cc;
+  background-color: #003366;
+}
+
+.drop-zone-content p {
+  margin: 5px 0;
+  color: #aaa;
+}
+
+.pages-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.page-item {
+  display: flex;
+  align-items: center;
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 10px;
+  gap: 10px;
+}
+
+.page-item img {
+  width: 60px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.page-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.page-number {
+  font-size: 12px;
+  color: #666;
+}
+
+.page-name {
+  font-size: 14px;
+  color: #ddd;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.page-actions button {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background-color: #444;
+  color: #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.page-actions button:hover:not(:disabled) {
+  background-color: #555;
+}
+
+.page-actions button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.page-actions .remove-btn {
+  background-color: #cc3333;
+}
+
+.page-actions .remove-btn:hover {
+  background-color: #dd4444;
+}

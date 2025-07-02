@@ -1,0 +1,35 @@
+{
+  "name": "electron-react-app",
+  "version": "1.0.0",
+  "description": "A minimal Electron + React application",
+  "main": "main/index.js",
+  "scripts": {
+    "dev": "concurrently \"yarn run react-start\" \"wait-on http://localhost:3000 && ELECTRON_START_URL=http://localhost:3000 electron .\"",
+    "start": "concurrently \"yarn run react-start\" \"wait-on http://localhost:3000 && ELECTRON_START_URL=http://localhost:3000 electron .\"",
+    "react-start": "cd app && yarn start",
+    "react-build": "cd app && yarn build",
+    "electron": "electron .",
+    "build": "yarn run react-build && electron-builder",
+    "dist": "yarn run react-build && electron-builder --publish=never"
+  },
+  "keywords": ["electron", "react"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.0",
+    "wait-on": "^7.0.0"
+  },
+  "build": {
+    "appId": "com.example.electron-react-app",
+    "productName": "Electron React App",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main/**/*",
+      "app/build/**/*"
+    ]
+  }
+}
