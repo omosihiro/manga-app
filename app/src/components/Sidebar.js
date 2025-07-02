@@ -2,7 +2,7 @@ import React from 'react';
 import './Sidebar.css';
 
 function Sidebar({ activeTab, onTabChange }) {
-  const tabs = ['Pages', 'Speech', 'Preview'];
+  const tabs = ['ページ', 'セリフ', 'プレビュー'];
 
   return (
     <div className="sidebar">

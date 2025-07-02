@@ -3,10 +3,10 @@ import './App.css';
 import Sidebar from './components/Sidebar';
 import PagesPanel from './components/PagesPanel';
 import SpeechTab from './components/SpeechTab';
-import PreviewPanel from './components/PreviewPanel';
+import PreviewTab from './components/PreviewTab';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('Pages');
+  const [activeTab, setActiveTab] = useState('ページ');
   const [pages, setPages] = useState([]);
   const [speechData, setSpeechData] = useState([]);
   const [language, setLanguage] = useState('ja');
@@ -55,9 +55,9 @@ function App() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'Pages':
+      case 'ページ':
         return <PagesPanel pages={pages} onPagesUpdate={setPages} />;
-      case 'Speech':
+      case 'セリフ':
         return (
           <SpeechTab 
             speechData={speechData} 
@@ -66,8 +66,14 @@ function App() {
             onLanguageChange={setLanguage}
           />
         );
-      case 'Preview':
-        return <PreviewPanel pages={pages} />;
+      case 'プレビュー':
+        return (
+          <PreviewTab 
+            pages={pages} 
+            speechData={speechData}
+            language={language}
+          />
+        );
       default:
         return null;
     }
@@ -78,10 +84,10 @@ function App() {
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
       <div className="main-content">
         <div className="content-header">
-          <h1>Manga Creator</h1>
+          <h1>マンガクリエイター</h1>
           {lastSaveTime && (
             <span className="save-status">
-              Auto-saved: {new Date(lastSaveTime).toLocaleTimeString()}
+              自動保存: {new Date(lastSaveTime).toLocaleTimeString()}
             </span>
           )}
         </div>
