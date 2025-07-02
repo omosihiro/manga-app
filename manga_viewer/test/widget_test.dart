@@ -11,20 +11,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manga_viewer/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('Manga viewer shows initial UI', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const MyApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verify that the app shows the title
+    expect(find.text('Manga Viewer'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Verify that the empty state message is shown
+    expect(find.text('No manga loaded'), findsOneWidget);
+    expect(find.text('Tap the button to select a .zip file'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify that the FAB with folder icon exists
+    expect(find.byIcon(Icons.folder_open), findsOneWidget);
+    expect(find.byType(FloatingActionButton), findsOneWidget);
   });
 }

@@ -1,0 +1,59 @@
+name: flutter
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "stable"
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: manga_viewer
+      - name: Run tests
+        run: flutter test
+        working-directory: manga_viewer
+      - name: Analyze code
+        run: flutter analyze
+        working-directory: manga_viewer
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "stable"
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: manga_viewer
+      - name: Build macOS app
+        run: flutter build macos --release
+        working-directory: manga_viewer
+      - name: Upload macOS build
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: manga_viewer/build/macos/Build/Products/Release/*.app
+
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "stable"
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: manga_viewer
+      - name: Build web app
+        run: flutter build web --release
+        working-directory: manga_viewer
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: manga_viewer/build/web
