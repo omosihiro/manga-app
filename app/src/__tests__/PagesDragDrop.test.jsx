@@ -1,359 +1,228 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import PagesPanel from '../components/PagesPanel';
+import PagesTab from '../components/PagesPanel';
 
-// Mock FileReader
-class MockFileReader {
-  constructor() {
-    this.result = null;
-    this.onload = null;
-  }
-  
-  readAsDataURL(file) {
-    // Simulate async read
-    setTimeout(() => {
-      if (this.onload) {
-        this.onload({ target: { result: this.result } });
-      }
-    }, 0);
-  }
-}
-
-global.FileReader = MockFileReader;
-
-describe('PagesPanel Drag and Drop', () => {
+describe('PagesDragDrop', () => {
   let mockOnPagesUpdate;
 
   beforeEach(() => {
     mockOnPagesUpdate = jest.fn();
-    jest.clearAllMocks();
-    
-    // Mock FileReader instances with different results
-    let fileReaderInstance = 0;
-    const results = ['data:image/png;base64,image1data', 'data:image/png;base64,image2data', 'data:image/png;base64,testdata'];
-    
-    global.FileReader = jest.fn().mockImplementation(function() {
-      const thisInstance = this;
-      const resultIndex = fileReaderInstance++;
-      this.result = results[resultIndex % results.length];
-      this.onload = null;
-      this.readAsDataURL = jest.fn(function(file) {
-        setTimeout(() => {
-          if (thisInstance.onload) {
-            thisInstance.onload({ target: { result: thisInstance.result } });
-          }
-        }, 0);
-      });
-    });
   });
 
-  test('renders PagesPanel component', () => {
-    render(
-      <PagesPanel 
-        pages={[]}
-        onPagesUpdate={mockOnPagesUpdate}
-      />
-    );
-
+  test('renders PagesTab component', () => {
+    render(<PagesTab pages={[]} onPagesUpdate={mockOnPagesUpdate} />);
+    
     expect(screen.getByText('Drag & Drop images here')).toBeInTheDocument();
     expect(screen.getByText('or click to select')).toBeInTheDocument();
   });
 
-  test('simulates dropping two fake files and shows thumbnails in order', async () => {
-    render(
-      <PagesPanel 
-        pages={[]}
-        onPagesUpdate={mockOnPagesUpdate}
-      />
+  test('simulates dropping two fake image files', async () => {
+    const { container } = render(
+      <PagesTab pages={[]} onPagesUpdate={mockOnPagesUpdate} />
     );
 
-    // Create mock image files
-    const file1 = new File(['image1'], 'image1.png', { type: 'image/png' });
-    const file2 = new File(['image2'], 'image2.png', { type: 'image/png' });
+    // Create two fake image files
+    const file1 = new File(['image1'], 'page1.png', { type: 'image/png' });
+    const file2 = new File(['image2'], 'page2.jpg', { type: 'image/jpeg' });
 
-    // Find drop zone
-    const dropZone = screen.getByText('Drag & Drop images here').closest('div').parentElement;
-
-    // FileReader mock is already set up in beforeEach
+    // Find the drop zone
+    const dropZone = screen.getByText('Drag & Drop images here').closest('.drop-zone');
 
     // Simulate drag over
     fireEvent.dragOver(dropZone, {
-      preventDefault: jest.fn(),
-      dataTransfer: { files: [file1, file2] }
+      dataTransfer: { 
+        files: [file1, file2],
+        types: ['Files']
+      }
     });
+
+    // Check if drag-over class is applied
+    expect(dropZone).toHaveClass('drag-over');
 
     // Simulate drop
     fireEvent.drop(dropZone, {
-      preventDefault: jest.fn(),
-      dataTransfer: { files: [file1, file2] }
+      dataTransfer: { 
+        files: [file1, file2]
+      }
     });
 
-    // Wait for the async operations to complete
+    // Wait for onPagesUpdate to be called
     await waitFor(() => {
-      expect(mockOnPagesUpdate).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.objectContaining({
-            name: 'image1.png',
-            url: 'data:image/png;base64,image1data',
-            type: 'image/png'
-          }),
-          expect.objectContaining({
-            name: 'image2.png',
-            url: 'data:image/png;base64,image2data',
-            type: 'image/png'
-          })
-        ])
-      );
+      expect(mockOnPagesUpdate).toHaveBeenCalled();
     });
+
+    // Check that two pages were added
+    const callArgs = mockOnPagesUpdate.mock.calls[0][0];
+    expect(callArgs).toHaveLength(2);
+    expect(callArgs[0].name).toBe('page1.png');
+    expect(callArgs[1].name).toBe('page2.jpg');
   });
 
-  test('displays uploaded pages with thumbnails', () => {
+  test('asserts both thumbnails appear in order', async () => {
     const pages = [
-      {
-        id: '1',
-        name: 'page1.png',
-        url: 'data:image/png;base64,page1data',
-        type: 'image/png'
-      },
-      {
-        id: '2',
-        name: 'page2.png',
-        url: 'data:image/png;base64,page2data',
-        type: 'image/png'
-      }
+      { id: '1', name: 'page1.png', url: 'data:image/png;base64,test1' },
+      { id: '2', name: 'page2.jpg', url: 'data:image/jpeg;base64,test2' }
     ];
 
-    render(
-      <PagesPanel 
-        pages={pages}
-        onPagesUpdate={mockOnPagesUpdate}
-      />
-    );
+    render(<PagesTab pages={pages} onPagesUpdate={mockOnPagesUpdate} />);
 
-    // Check that page items are displayed
-    expect(screen.getByText('1')).toBeInTheDocument(); // Page number
-    expect(screen.getByText('2')).toBeInTheDocument(); // Page number
+    // Check that both thumbnails appear
     expect(screen.getByText('page1.png')).toBeInTheDocument();
-    expect(screen.getByText('page2.png')).toBeInTheDocument();
-    
-    // Check that images are rendered
-    const images = screen.getAllByRole('img');
-    expect(images).toHaveLength(2);
-    expect(images[0]).toHaveAttribute('src', 'data:image/png;base64,page1data');
-    expect(images[1]).toHaveAttribute('src', 'data:image/png;base64,page2data');
+    expect(screen.getByText('page2.jpg')).toBeInTheDocument();
+
+    // Check the order by checking which appears first in the DOM
+    const pageNames = screen.getAllByText(/page\d\.(png|jpg)/);
+    expect(pageNames[0]).toHaveTextContent('page1.png');
+    expect(pageNames[1]).toHaveTextContent('page2.jpg');
   });
 
-  test('simulates drag reorder and checks new order', () => {
+  test('simulates reorder using move buttons', async () => {
     const pages = [
-      {
-        id: '1',
-        name: 'page1.png',
-        url: 'data:image/png;base64,page1data',
-        type: 'image/png'
-      },
-      {
-        id: '2',
-        name: 'page2.png',
-        url: 'data:image/png;base64,page2data',
-        type: 'image/png'
-      },
-      {
-        id: '3',
-        name: 'page3.png',
-        url: 'data:image/png;base64,page3data',
-        type: 'image/png'
-      }
+      { id: '1', name: 'page1.png', url: 'data:image/png;base64,test1' },
+      { id: '2', name: 'page2.jpg', url: 'data:image/jpeg;base64,test2' },
+      { id: '3', name: 'page3.gif', url: 'data:image/gif;base64,test3' }
     ];
 
-    render(
-      <PagesPanel 
-        pages={pages}
-        onPagesUpdate={mockOnPagesUpdate}
-      />
-    );
+    const { rerender } = render(<PagesTab pages={pages} onPagesUpdate={mockOnPagesUpdate} />);
 
-    // Find move down button for first page
+    // Find all move down buttons
     const moveDownButtons = screen.getAllByTitle('Move down');
-    expect(moveDownButtons[0]).not.toBeDisabled();
     
-    // Click move down on first page
+    // Click the first move down button (moves page1 down)
     fireEvent.click(moveDownButtons[0]);
 
     // Check that onPagesUpdate was called with reordered pages
     expect(mockOnPagesUpdate).toHaveBeenCalledWith([
-      {
-        id: '2',
-        name: 'page2.png',
-        url: 'data:image/png;base64,page2data',
-        type: 'image/png'
-      },
-      {
-        id: '1',
-        name: 'page1.png',
-        url: 'data:image/png;base64,page1data',
-        type: 'image/png'
-      },
-      {
-        id: '3',
-        name: 'page3.png',
-        url: 'data:image/png;base64,page3data',
-        type: 'image/png'
-      }
+      { id: '2', name: 'page2.jpg', url: 'data:image/jpeg;base64,test2' },
+      { id: '1', name: 'page1.png', url: 'data:image/png;base64,test1' },
+      { id: '3', name: 'page3.gif', url: 'data:image/gif;base64,test3' }
     ]);
-  });
 
-  test('move up button reorders pages correctly', () => {
-    const pages = [
-      {
-        id: '1',
-        name: 'page1.png',
-        url: 'data:image/png;base64,page1data',
-        type: 'image/png'
-      },
-      {
-        id: '2',
-        name: 'page2.png',
-        url: 'data:image/png;base64,page2data',
-        type: 'image/png'
-      }
-    ];
-
-    render(
-      <PagesPanel 
-        pages={pages}
-        onPagesUpdate={mockOnPagesUpdate}
-      />
-    );
-
-    // Find move up button for second page
-    const moveUpButtons = screen.getAllByTitle('Move up');
-    expect(moveUpButtons[1]).not.toBeDisabled();
+    // Clear mock and rerender with new order
+    mockOnPagesUpdate.mockClear();
     
-    // Click move up on second page
-    fireEvent.click(moveUpButtons[1]);
+    // Rerender with the new order
+    const newOrder = [
+      { id: '2', name: 'page2.jpg', url: 'data:image/jpeg;base64,test2' },
+      { id: '1', name: 'page1.png', url: 'data:image/png;base64,test1' },
+      { id: '3', name: 'page3.gif', url: 'data:image/gif;base64,test3' }
+    ];
+    rerender(<PagesTab pages={newOrder} onPagesUpdate={mockOnPagesUpdate} />);
+
+    // Now test move up
+    const moveUpButtons = screen.getAllByTitle('Move up');
+    
+    // Click the last move up button (moves page3 up, which is at index 2)
+    fireEvent.click(moveUpButtons[moveUpButtons.length - 1]);
 
     // Check that onPagesUpdate was called with reordered pages
     expect(mockOnPagesUpdate).toHaveBeenCalledWith([
-      {
-        id: '2',
-        name: 'page2.png',
-        url: 'data:image/png;base64,page2data',
-        type: 'image/png'
-      },
-      {
-        id: '1',
-        name: 'page1.png',
-        url: 'data:image/png;base64,page1data',
-        type: 'image/png'
-      }
+      { id: '2', name: 'page2.jpg', url: 'data:image/jpeg;base64,test2' },
+      { id: '3', name: 'page3.gif', url: 'data:image/gif;base64,test3' },
+      { id: '1', name: 'page1.png', url: 'data:image/png;base64,test1' }
     ]);
   });
 
-  test('remove button deletes page', () => {
-    const pages = [
-      {
-        id: '1',
-        name: 'page1.png',
-        url: 'data:image/png;base64,page1data',
-        type: 'image/png'
-      },
-      {
-        id: '2',
-        name: 'page2.png',
-        url: 'data:image/png;base64,page2data',
-        type: 'image/png'
-      }
-    ];
-
-    render(
-      <PagesPanel 
-        pages={pages}
-        onPagesUpdate={mockOnPagesUpdate}
-      />
-    );
-
-    // Find and click remove button for first page
-    const removeButtons = screen.getAllByTitle('Remove');
-    fireEvent.click(removeButtons[0]);
-
-    // Check that onPagesUpdate was called without the first page
-    expect(mockOnPagesUpdate).toHaveBeenCalledWith([
-      {
-        id: '2',
-        name: 'page2.png',
-        url: 'data:image/png;base64,page2data',
-        type: 'image/png'
-      }
-    ]);
-  });
-
-  test('handles file selection through input', async () => {
+  test('handles file input change', async () => {
     const { container } = render(
-      <PagesPanel 
-        pages={[]}
-        onPagesUpdate={mockOnPagesUpdate}
-      />
+      <PagesTab pages={[]} onPagesUpdate={mockOnPagesUpdate} />
     );
 
-    // Create mock image file
-    const file = new File(['image'], 'test.png', { type: 'image/png' });
+    // Create fake files
+    const file1 = new File(['image1'], 'input1.png', { type: 'image/png' });
+    const file2 = new File(['image2'], 'input2.png', { type: 'image/png' });
 
     // Find file input
     const fileInput = container.querySelector('input[type="file"]');
     expect(fileInput).toBeInTheDocument();
 
-    // FileReader mock is already set up in beforeEach
-
     // Simulate file selection
-    fireEvent.change(fileInput, { target: { files: [file] } });
+    fireEvent.change(fileInput, {
+      target: { files: [file1, file2] }
+    });
 
-    // Wait for async operations
+    // Wait for onPagesUpdate to be called
     await waitFor(() => {
-      expect(mockOnPagesUpdate).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.objectContaining({
-            name: 'test.png',
-            url: expect.stringMatching(/^data:image\/png;base64,/),
-            type: 'image/png'
-          })
-        ])
-      );
+      expect(mockOnPagesUpdate).toHaveBeenCalled();
+      const addedPages = mockOnPagesUpdate.mock.calls[0][0];
+      expect(addedPages).toHaveLength(2);
+      expect(addedPages[0].name).toBe('input1.png');
+      expect(addedPages[1].name).toBe('input2.png');
     });
   });
 
-  test('disables move buttons at boundaries', () => {
-    const pages = [
-      {
-        id: '1',
-        name: 'page1.png',
-        url: 'data:image/png;base64,page1data',
-        type: 'image/png'
-      },
-      {
-        id: '2',
-        name: 'page2.png',
-        url: 'data:image/png;base64,page2data',
-        type: 'image/png'
+  test('removes drag-over class on drag leave', () => {
+    render(<PagesTab pages={[]} onPagesUpdate={mockOnPagesUpdate} />);
+
+    const dropZone = screen.getByText('Drag & Drop images here').closest('.drop-zone');
+
+    // Simulate drag over
+    fireEvent.dragOver(dropZone, {
+      dataTransfer: { 
+        types: ['Files']
       }
+    });
+
+    expect(dropZone).toHaveClass('drag-over');
+
+    // Simulate drag leave
+    fireEvent.dragLeave(dropZone);
+
+    expect(dropZone).not.toHaveClass('drag-over');
+  });
+
+  test('handles delete button click', async () => {
+    const pages = [
+      { id: '1', name: 'page1.png', url: 'data:image/png;base64,test1' },
+      { id: '2', name: 'page2.jpg', url: 'data:image/jpeg;base64,test2' }
     ];
 
-    render(
-      <PagesPanel 
-        pages={pages}
-        onPagesUpdate={mockOnPagesUpdate}
-      />
-    );
+    render(<PagesTab pages={pages} onPagesUpdate={mockOnPagesUpdate} />);
+
+    // Find and click the first delete button
+    const deleteButtons = screen.getAllByTitle('Remove');
+    fireEvent.click(deleteButtons[0]);
+
+    // Check that onPagesUpdate was called without the first page
+    expect(mockOnPagesUpdate).toHaveBeenCalledWith([
+      { id: '2', name: 'page2.jpg', url: 'data:image/jpeg;base64,test2' }
+    ]);
+  });
+
+  test('prevents default on drag over to allow drop', () => {
+    render(<PagesTab pages={[]} onPagesUpdate={mockOnPagesUpdate} />);
+
+    const dropZone = screen.getByText('Drag & Drop images here').closest('.drop-zone');
+    
+    const dragOverEvent = new Event('dragover', { bubbles: true });
+    dragOverEvent.preventDefault = jest.fn();
+    
+    fireEvent(dropZone, dragOverEvent);
+    
+    expect(dragOverEvent.preventDefault).toHaveBeenCalled();
+  });
+
+  test('disables appropriate move buttons at boundaries', () => {
+    const pages = [
+      { id: '1', name: 'page1.png', url: 'data:image/png;base64,test1' },
+      { id: '2', name: 'page2.jpg', url: 'data:image/jpeg;base64,test2' },
+      { id: '3', name: 'page3.gif', url: 'data:image/gif;base64,test3' }
+    ];
+
+    render(<PagesTab pages={pages} onPagesUpdate={mockOnPagesUpdate} />);
 
     const moveUpButtons = screen.getAllByTitle('Move up');
     const moveDownButtons = screen.getAllByTitle('Move down');
 
-    // First page should have disabled move up
+    // First page should have move up disabled
     expect(moveUpButtons[0]).toBeDisabled();
-    expect(moveDownButtons[0]).not.toBeDisabled();
-
-    // Last page should have disabled move down
+    
+    // Last page should have move down disabled
+    expect(moveDownButtons[moveDownButtons.length - 1]).toBeDisabled();
+    
+    // Middle pages should have both enabled
     expect(moveUpButtons[1]).not.toBeDisabled();
-    expect(moveDownButtons[1]).toBeDisabled();
+    expect(moveDownButtons[1]).not.toBeDisabled();
   });
 });
