@@ -11,10 +11,10 @@ dependencies:
     sdk: flutter
   
   # File picker for selecting zip files
-  file_picker: ^6.1.1
+  file_picker: ^10.2.0
   
   # Archive library for extracting zip files
-  archive: ^3.4.9
+  archive: ^4.0.7
 
 dev_dependencies:
   flutter_test:
