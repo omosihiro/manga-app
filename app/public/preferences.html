@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preferences</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background-color: #f5f5f5;
+      padding: 20px;
+      user-select: none;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      font-size: 20px;
+      margin-bottom: 24px;
+      color: #333;
+    }
+    
+    .setting-group {
+      margin-bottom: 24px;
+    }
+    
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #555;
+    }
+    
+    .path-input-group {
+      display: flex;
+      gap: 8px;
+    }
+    
+    input[type="text"] {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      background-color: #fafafa;
+    }
+    
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #4CAF50;
+      background-color: white;
+    }
+    
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .browse-btn {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+    
+    .browse-btn:hover {
+      background-color: #e0e0e0;
+    }
+    
+    .action-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    
+    .save-btn {
+      background-color: #4CAF50;
+      color: white;
+    }
+    
+    .save-btn:hover {
+      background-color: #45a049;
+    }
+    
+    .cancel-btn {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+    
+    .cancel-btn:hover {
+      background-color: #e0e0e0;
+    }
+    
+    .error-message {
+      color: #f44336;
+      font-size: 12px;
+      margin-top: 4px;
+      display: none;
+    }
+    
+    .success-message {
+      color: #4CAF50;
+      font-size: 12px;
+      margin-top: 4px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Preferences</h1>
+    
+    <div class="setting-group">
+      <label for="exportPath">Export Folder</label>
+      <div class="path-input-group">
+        <input type="text" id="exportPath" placeholder="Loading..." readonly>
+        <button class="browse-btn" id="browseBtn">Browse…</button>
+      </div>
+      <div class="error-message" id="errorMessage"></div>
+      <div class="success-message" id="successMessage"></div>
+    </div>
+    
+    <div class="action-buttons">
+      <button class="cancel-btn" id="cancelBtn">Cancel</button>
+      <button class="save-btn" id="saveBtn">Save</button>
+    </div>
+  </div>
+  
+  <script>
+    let currentSettings = {};
+    
+    // Load current settings
+    async function loadSettings() {
+      try {
+        const settings = await window.electronAPI.getPreferencesSettings();
+        currentSettings = settings;
+        document.getElementById('exportPath').value = settings.exportPath || '';
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+      }
+    }
+    
+    // Browse button click
+    document.getElementById('browseBtn').addEventListener('click', async () => {
+      try {
+        const path = await window.electronAPI.selectPreferencesFolder();
+        if (path) {
+          document.getElementById('exportPath').value = path;
+          hideMessages();
+        }
+      } catch (error) {
+        showError('Failed to select folder');
+      }
+    });
+    
+    // Save button click
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      const exportPath = document.getElementById('exportPath').value;
+      
+      if (!exportPath) {
+        showError('Please select an export folder');
+        return;
+      }
+      
+      try {
+        const newSettings = {
+          ...currentSettings,
+          exportPath: exportPath
+        };
+        
+        const result = await window.electronAPI.savePreferencesSettings(newSettings);
+        
+        if (result.success) {
+          showSuccess('Settings saved successfully');
+          setTimeout(() => {
+            window.close();
+          }, 1000);
+        } else {
+          showError(result.error || 'Failed to save settings');
+        }
+      } catch (error) {
+        showError('Failed to save settings');
+      }
+    });
+    
+    // Cancel button click
+    document.getElementById('cancelBtn').addEventListener('click', () => {
+      window.close();
+    });
+    
+    // Helper functions
+    function showError(message) {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+      document.getElementById('successMessage').style.display = 'none';
+    }
+    
+    function showSuccess(message) {
+      const successEl = document.getElementById('successMessage');
+      successEl.textContent = message;
+      successEl.style.display = 'block';
+      document.getElementById('errorMessage').style.display = 'none';
+    }
+    
+    function hideMessages() {
+      document.getElementById('errorMessage').style.display = 'none';
+      document.getElementById('successMessage').style.display = 'none';
+    }
+    
+    // Initialize
+    loadSettings();
+  </script>
+</body>
+</html>

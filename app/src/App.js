@@ -76,7 +76,7 @@ function App() {
   const loadProject = async () => {
     if (window.electronAPI && window.electronAPI.loadProject) {
       const result = await window.electronAPI.loadProject();
-      if (result.success && result.data) {
+      if (result && result.success && result.data) {
         setPages(result.data.pages || []);
         setSpeechData(result.data.speechData || []);
         setLanguage(result.data.language || 'ja');

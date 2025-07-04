@@ -3,10 +3,10 @@ const path = require('path');
 const fs = require('fs').promises;
 const { exportProject } = require('./export');
 const SettingsManager = require('./settings');
+const { createPreferencesWindow, initializePreferences } = require('./preferences');
 
 let mainWindow;
 let settingsManager;
-let preferencesWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -30,10 +30,15 @@ function createWindow() {
 }
 
 function createMenu() {
+  const isMac = process.platform === 'darwin';
+  
   const template = [
-    {
+    // macOS app menu
+    ...(isMac ? [{
       label: app.getName(),
       submenu: [
+        { role: 'about' },
+        { type: 'separator' },
         {
           label: 'Preferences…',
           accelerator: 'CmdOrCtrl+,',
@@ -42,9 +47,30 @@ function createMenu() {
           }
         },
         { type: 'separator' },
+        { role: 'services', submenu: [] },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
         { role: 'quit' }
       ]
+    }] : []),
+    // File menu
+    {
+      label: 'File',
+      submenu: [
+        ...(!isMac ? [{
+          label: 'Preferences…',
+          accelerator: 'CmdOrCtrl+,',
+          click: () => {
+            createPreferencesWindow();
+          }
+        }, { type: 'separator' }] : []),
+        { role: isMac ? 'close' : 'quit' }
+      ]
     },
+    // Edit menu
     {
       label: 'Edit',
       submenu: [
@@ -62,40 +88,11 @@ function createMenu() {
   Menu.setApplicationMenu(menu);
 }
 
-function createPreferencesWindow() {
-  if (preferencesWindow) {
-    preferencesWindow.focus();
-    return;
-  }
-
-  preferencesWindow = new BrowserWindow({
-    width: 500,
-    height: 300,
-    parent: mainWindow,
-    modal: true,
-    show: false,
-    resizable: false,
-    minimizable: false,
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
-    }
-  });
-
-  preferencesWindow.loadFile(path.join(__dirname, 'preferences.html'));
-
-  preferencesWindow.once('ready-to-show', () => {
-    preferencesWindow.show();
-  });
-
-  preferencesWindow.on('closed', () => {
-    preferencesWindow = null;
-  });
-}
 
 app.whenReady().then(() => {
   settingsManager = new SettingsManager(app);
   settingsManager.loadSettings().then(() => {
+    initializePreferences(settingsManager);
     createWindow();
     createMenu();
   });

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:archive/archive.dart';
 import 'widgets/animated_speech_bubble.dart';
+import 'widgets/language_toggle.dart';
 
 void main() {
   runApp(const MyApp());
@@ -139,36 +140,13 @@ class _MangaViewerState extends State<MangaViewer> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           if (_creatorData != null)
-            PopupMenuButton<String>(
-              initialValue: _currentLanguage,
-              onSelected: (String language) {
+            LanguageToggle(
+              current: _currentLanguage,
+              onChanged: (String language) {
                 setState(() {
                   _currentLanguage = language;
                 });
               },
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                  value: 'ja',
-                  child: Text('日本語 (JA)'),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'en',
-                  child: Text('English (EN)'),
-                ),
-              ],
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  children: [
-                    const Icon(Icons.language),
-                    const SizedBox(width: 4),
-                    Text(
-                      _currentLanguage.toUpperCase(),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
             ),
         ],
       ),

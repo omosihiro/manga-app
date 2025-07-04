@@ -4,7 +4,15 @@ import App from './App';
 
 // Mock electron API
 window.electronAPI = {
-  loadProject: jest.fn().mockResolvedValue({ success: true, data: null }),
+  loadProject: jest.fn().mockResolvedValue({ 
+    success: true, 
+    data: {
+      pages: [],
+      speechData: [],
+      language: 'ja',
+      lastSaveTime: null
+    }
+  }),
   saveProject: jest.fn().mockResolvedValue({ success: true }),
   exportProject: jest.fn().mockResolvedValue({ success: true }),
   getExportPath: jest.fn().mockResolvedValue('/mock/path'),

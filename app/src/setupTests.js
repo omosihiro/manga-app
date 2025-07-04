@@ -8,12 +8,29 @@ import '@testing-library/jest-dom';
 Object.defineProperty(window, 'electronAPI', {
   value: {
     loadProject: jest.fn().mockImplementation(() => 
-      Promise.resolve({ success: true, data: null })
+      Promise.resolve({ 
+        success: true, 
+        data: {
+          pages: [],
+          speechData: [],
+          language: 'ja',
+          lastSaveTime: null
+        }
+      })
     ),
     saveProject: jest.fn().mockImplementation(() => 
       Promise.resolve({ success: true })
     ),
     exportProject: jest.fn().mockImplementation(() => 
+      Promise.resolve({ success: true })
+    ),
+    getExportPath: jest.fn().mockImplementation(() => 
+      Promise.resolve('/mock/path')
+    ),
+    setExportPath: jest.fn().mockImplementation(() => 
+      Promise.resolve({ success: true })
+    ),
+    openExportFolder: jest.fn().mockImplementation(() => 
       Promise.resolve({ success: true })
     )
   },

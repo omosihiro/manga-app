@@ -15,5 +15,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   exportProject: (data) => ipcRenderer.invoke('export-project', data),
   getExportPath: () => ipcRenderer.invoke('get-export-path'),
   setExportPath: (path) => ipcRenderer.invoke('set-export-path', path),
-  openExportFolder: () => ipcRenderer.invoke('open-export-folder')
+  openExportFolder: () => ipcRenderer.invoke('open-export-folder'),
+  // Preferences window APIs
+  getPreferencesSettings: () => ipcRenderer.invoke('preferences:getSettings'),
+  selectPreferencesFolder: () => ipcRenderer.invoke('preferences:selectFolder'),
+  savePreferencesSettings: (settings) => ipcRenderer.invoke('preferences:saveSettings', settings)
 });

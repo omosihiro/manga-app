@@ -17,6 +17,29 @@ async function exportProject(data, outputDir) {
     zlib: { level: 9 } // Maximum compression
   });
   
+  // Prepare image buffers before creating the archive
+  const imageBuffers = [];
+  if (data.pages && data.pages.length > 0) {
+    for (let i = 0; i < data.pages.length; i++) {
+      const page = data.pages[i];
+      if (page.url) {
+        const base64Data = page.url.replace(/^data:image\/\w+;base64,/, '');
+        const buffer = Buffer.from(base64Data, 'base64');
+        
+        if (data.compressToWebP) {
+          // Convert to WebP with quality 85
+          const webpBuffer = await sharp(buffer)
+            .webp({ quality: 85 })
+            .toBuffer();
+          imageBuffers.push({ buffer: webpBuffer, index: i, extension: 'webp' });
+        } else {
+          // Keep as PNG
+          imageBuffers.push({ buffer: buffer, index: i, extension: 'png' });
+        }
+      }
+    }
+  }
+  
   // Return a promise that resolves when the archive is finalized
   return new Promise((resolve, reject) => {
     output.on('close', () => {
@@ -52,26 +75,9 @@ async function exportProject(data, outputDir) {
     
     archive.append(JSON.stringify(creatorData, null, 2), { name: 'creator.json' });
     
-    // Create panels directory and add images
-    if (data.pages && data.pages.length > 0) {
-      for (let i = 0; i < data.pages.length; i++) {
-        const page = data.pages[i];
-        if (page.url) {
-          const base64Data = page.url.replace(/^data:image\/\w+;base64,/, '');
-          const buffer = Buffer.from(base64Data, 'base64');
-          
-          if (data.compressToWebP) {
-            // Convert to WebP with quality 85
-            const webpBuffer = await sharp(buffer)
-              .webp({ quality: 85 })
-              .toBuffer();
-            archive.append(webpBuffer, { name: `panels/page_${i + 1}.webp` });
-          } else {
-            // Keep as PNG
-            archive.append(buffer, { name: `panels/page_${i + 1}.png` });
-          }
-        }
-      }
+    // Add pre-processed images
+    for (const img of imageBuffers) {
+      archive.append(img.buffer, { name: `panels/page_${img.index + 1}.${img.extension}` });
     }
     
     // Finalize the archive

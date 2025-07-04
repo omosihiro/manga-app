@@ -1,5 +1,30 @@
 import 'package:flutter/material.dart';
 
+// Helper function to parse color strings
+Color parseColor(String c) {
+  // Handle hex colors
+  if (c.startsWith('#')) {
+    return HexColor(c);
+  }
+  
+  // Handle color names (case-insensitive)
+  final colorMap = {
+    'WHITE': Colors.white,
+    'BLACK': Colors.black,
+    'RED': Colors.red,
+    'BLUE': Colors.blue,
+    'GREEN': Colors.green,
+    'YELLOW': Colors.yellow,
+    'CYAN': Colors.cyan,
+    'MAGENTA': Colors.purple,
+    'GRAY': Colors.grey,
+    'GREY': Colors.grey,
+  };
+  
+  final upperColor = c.toUpperCase();
+  return colorMap[upperColor] ?? Colors.white;
+}
+
 class SpeechBubble extends StatelessWidget {
   final Map<String, dynamic> style;
   final String text;
@@ -66,14 +91,14 @@ class SpeechBubble extends StatelessWidget {
     switch (shape) {
       case 'rounded':
         return BoxDecoration(
-          color: HexColor(bg),
-          border: Border.all(color: HexColor(borderColor), width: 2),
+          color: parseColor(bg),
+          border: Border.all(color: parseColor(borderColor), width: 2),
           borderRadius: BorderRadius.circular(16),
         );
       case 'cloud':
         return BoxDecoration(
-          color: HexColor(bg),
-          border: Border.all(color: HexColor(borderColor), width: 2),
+          color: parseColor(bg),
+          border: Border.all(color: parseColor(borderColor), width: 2),
           borderRadius: const BorderRadius.only(
             topLeft: Radius.elliptical(50, 40),
             topRight: Radius.elliptical(40, 50),
@@ -83,14 +108,14 @@ class SpeechBubble extends StatelessWidget {
         );
       case 'sharp':
         return BoxDecoration(
-          color: HexColor(bg),
-          border: Border.all(color: HexColor(borderColor), width: 2),
+          color: parseColor(bg),
+          border: Border.all(color: parseColor(borderColor), width: 2),
           borderRadius: BorderRadius.circular(4),
         );
       case 'thought':
         return BoxDecoration(
-          color: HexColor(bg),
-          border: Border.all(color: HexColor(borderColor), width: 2),
+          color: parseColor(bg),
+          border: Border.all(color: parseColor(borderColor), width: 2),
           borderRadius: const BorderRadius.only(
             topLeft: Radius.elliptical(50, 40),
             topRight: Radius.elliptical(40, 50),
@@ -100,8 +125,8 @@ class SpeechBubble extends StatelessWidget {
         );
       default:
         return BoxDecoration(
-          color: HexColor(bg),
-          border: Border.all(color: HexColor(borderColor), width: 2),
+          color: parseColor(bg),
+          border: Border.all(color: parseColor(borderColor), width: 2),
           borderRadius: BorderRadius.circular(16),
         );
     }
@@ -116,8 +141,8 @@ class SpeechBubble extends StatelessWidget {
           width: 20,
           height: 20,
           decoration: BoxDecoration(
-            color: HexColor(bg),
-            border: Border.all(color: HexColor(borderColor), width: 2),
+            color: parseColor(bg),
+            border: Border.all(color: parseColor(borderColor), width: 2),
             shape: BoxShape.circle,
           ),
         ),
@@ -129,8 +154,8 @@ class SpeechBubble extends StatelessWidget {
           width: 12,
           height: 12,
           decoration: BoxDecoration(
-            color: HexColor(bg),
-            border: Border.all(color: HexColor(borderColor), width: 2),
+            color: parseColor(bg),
+            border: Border.all(color: parseColor(borderColor), width: 2),
             shape: BoxShape.circle,
           ),
         ),
@@ -147,8 +172,8 @@ class SpeechBubble extends StatelessWidget {
           width: 16,
           height: 16,
           decoration: BoxDecoration(
-            color: HexColor(bg),
-            border: Border.all(color: HexColor(borderColor), width: 2),
+            color: parseColor(bg),
+            border: Border.all(color: parseColor(borderColor), width: 2),
             shape: BoxShape.circle,
           ),
         ),
@@ -160,8 +185,8 @@ class SpeechBubble extends StatelessWidget {
           width: 10,
           height: 10,
           decoration: BoxDecoration(
-            color: HexColor(bg),
-            border: Border.all(color: HexColor(borderColor), width: 2),
+            color: parseColor(bg),
+            border: Border.all(color: parseColor(borderColor), width: 2),
             shape: BoxShape.circle,
           ),
         ),
@@ -176,8 +201,8 @@ class SpeechBubble extends StatelessWidget {
       child: CustomPaint(
         size: const Size(20, 10),
         painter: TrianglePainter(
-          fillColor: HexColor(bg),
-          borderColor: HexColor(borderColor),
+          fillColor: parseColor(bg),
+          borderColor: parseColor(borderColor),
         ),
       ),
     );
@@ -216,7 +241,7 @@ class TrianglePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// HexColor utility class
+// HexColor utility class for parsing hex color strings
 class HexColor extends Color {
   static int _getColorFromHex(String hexColor) {
     hexColor = hexColor.toUpperCase().replaceAll('#', '');
