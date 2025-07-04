@@ -16,7 +16,10 @@
     "test:coverage": "jest --coverage && cd app && yarn test --coverage --watchAll=false",
     "test:ci": "npx jest --ci --coverage --maxWorkers=2 && cd app && yarn test:ci"
   },
-  "keywords": ["electron", "react"],
+  "keywords": [
+    "electron",
+    "react"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
@@ -38,5 +41,8 @@
       "main/**/*",
       "app/build/**/*"
     ]
+  },
+  "dependencies": {
+    "sharp": "^0.34.2"
   }
 }

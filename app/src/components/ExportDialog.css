@@ -1,0 +1,157 @@
+.export-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.export-dialog {
+  background-color: #2a2a2a;
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 400px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.export-dialog h2 {
+  margin: 0 0 20px 0;
+  color: #fff;
+  font-size: 20px;
+}
+
+.export-path-info {
+  background-color: #1a1a1a;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.export-path-row {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+}
+
+.export-path-label {
+  color: #888;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.export-path {
+  color: #ddd;
+  font-family: monospace;
+  word-break: break-all;
+  flex: 1;
+}
+
+.open-folder-button {
+  padding: 6px 12px;
+  background-color: #444;
+  color: #ddd;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.open-folder-button:hover:not(:disabled) {
+  background-color: #555;
+}
+
+.open-folder-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.export-options {
+  margin-bottom: 24px;
+}
+
+.export-option {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background-color: #333;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.export-option:hover {
+  background-color: #3a3a3a;
+}
+
+.export-option input[type="checkbox"] {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.export-option span:first-of-type {
+  color: #fff;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.option-description {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+  margin-left: 24px;
+}
+
+.export-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancel-button {
+  padding: 8px 16px;
+  background-color: #444;
+  color: #ddd;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.cancel-button:hover:not(:disabled) {
+  background-color: #555;
+}
+
+.export-confirm-button {
+  padding: 8px 16px;
+  background-color: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.export-confirm-button:hover:not(:disabled) {
+  background-color: #0077ee;
+}
+
+.cancel-button:disabled,
+.export-confirm-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -12,5 +12,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   saveProject: (data) => ipcRenderer.invoke('save-project', data),
   loadProject: () => ipcRenderer.invoke('load-project'),
-  exportProject: (data) => ipcRenderer.invoke('export-project', data)
+  exportProject: (data) => ipcRenderer.invoke('export-project', data),
+  getExportPath: () => ipcRenderer.invoke('get-export-path'),
+  setExportPath: (path) => ipcRenderer.invoke('set-export-path', path),
+  openExportFolder: () => ipcRenderer.invoke('open-export-folder')
 });

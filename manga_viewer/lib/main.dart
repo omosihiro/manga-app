@@ -139,16 +139,36 @@ class _MangaViewerState extends State<MangaViewer> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           if (_creatorData != null)
-            IconButton(
-              icon: Text(
-                _currentLanguage.toUpperCase(),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              onPressed: () {
+            PopupMenuButton<String>(
+              initialValue: _currentLanguage,
+              onSelected: (String language) {
                 setState(() {
-                  _currentLanguage = _currentLanguage == 'ja' ? 'en' : 'ja';
+                  _currentLanguage = language;
                 });
               },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'ja',
+                  child: Text('日本語 (JA)'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'en',
+                  child: Text('English (EN)'),
+                ),
+              ],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  children: [
+                    const Icon(Icons.language),
+                    const SizedBox(width: 4),
+                    Text(
+                      _currentLanguage.toUpperCase(),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
             ),
         ],
       ),

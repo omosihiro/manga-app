@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const archiver = require('archiver');
+const sharp = require('sharp');
 
 async function exportProject(data, outputDir) {
   // Ensure output directory exists
@@ -29,12 +30,15 @@ async function exportProject(data, outputDir) {
     // Pipe archive data to the file
     archive.pipe(output);
     
+    // Determine file extension based on compression option
+    const imageExtension = data.compressToWebP ? 'webp' : 'png';
+    
     // Add creator.json
     const creatorData = {
       pages: (data.pages || []).map((page, index) => ({
         id: page.id,
         name: page.name,
-        filename: `page_${index + 1}.png`,
+        filename: `page_${index + 1}.${imageExtension}`,
         speechId: page.speechId || null,
         speechPos: page.speechPos || { x: 20, y: 20 },
         speechStyle: page.speechStyle || { shape: 'rounded', color: 'white', borderColor: 'black', size: 'medium', animation: 'fadeIn' },
@@ -55,7 +59,17 @@ async function exportProject(data, outputDir) {
         if (page.url) {
           const base64Data = page.url.replace(/^data:image\/\w+;base64,/, '');
           const buffer = Buffer.from(base64Data, 'base64');
-          archive.append(buffer, { name: `panels/page_${i + 1}.png` });
+          
+          if (data.compressToWebP) {
+            // Convert to WebP with quality 85
+            const webpBuffer = await sharp(buffer)
+              .webp({ quality: 85 })
+              .toBuffer();
+            archive.append(webpBuffer, { name: `panels/page_${i + 1}.webp` });
+          } else {
+            // Keep as PNG
+            archive.append(buffer, { name: `panels/page_${i + 1}.png` });
+          }
         }
       }
     }

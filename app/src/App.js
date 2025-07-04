@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import PagesPanel from './components/PagesPanel';
 import SpeechTab from './components/SpeechTab';
 import PreviewTab from './components/PreviewTab';
+import ExportDialog from './components/ExportDialog';
 
 function App() {
   const [activeTab, setActiveTab] = useState('ページ');
@@ -34,6 +35,7 @@ function App() {
   const [language, setLanguage] = useState('ja');
   const [lastSaveTime, setLastSaveTime] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
 
   // Load project on startup
   useEffect(() => {
@@ -100,7 +102,7 @@ function App() {
     }
   };
 
-  const handleExport = async () => {
+  const handleExport = async (options = {}) => {
     if (!window.electronAPI || !window.electronAPI.exportProject) return;
     
     setIsExporting(true);
@@ -110,7 +112,8 @@ function App() {
         speechData,
         language,
         title: 'manga-project', // You can make this customizable
-        version: '1.0.0'
+        version: '1.0.0',
+        compressToWebP: options.compressToWebP || false
       };
       
       const result = await window.electronAPI.exportProject(projectData);
@@ -121,6 +124,7 @@ function App() {
       console.error('Export error:', error);
     } finally {
       setIsExporting(false);
+      setShowExportDialog(false);
     }
   };
 
@@ -205,7 +209,7 @@ function App() {
             </div>
             <button 
               className="export-button" 
-              onClick={handleExport}
+              onClick={() => setShowExportDialog(true)}
               disabled={isExporting || pages.length === 0}
             >
               {isExporting ? 'エクスポート中...' : 'エクスポート'}
@@ -216,6 +220,13 @@ function App() {
           {renderContent()}
         </div>
       </div>
+      
+      <ExportDialog
+        isOpen={showExportDialog}
+        onClose={() => setShowExportDialog(false)}
+        onExport={handleExport}
+        isExporting={isExporting}
+      />
     </div>
   );
 }
