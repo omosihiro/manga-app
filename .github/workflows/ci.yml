@@ -5,74 +5,68 @@ on:
   pull_request:
 
 jobs:
-  # Test job - Run tests for Electron/React app
   test:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'yarn'
-    
-    - name: Install dependencies
-      run: yarn install
-    
-    - name: Run tests
-      run: yarn test
-  
-  # Flutter Web build job
-  flutter-web:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn install
+      
+      - name: Run tests
+        run: yarn test
+
+  web:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        channel: 'stable'
-    
-    - name: Get dependencies
-      run: |
-        cd manga_viewer
-        flutter pub get
-    
-    - name: Build web app (release)
-      run: |
-        cd manga_viewer
-        flutter build web --release
-    
-    - name: Upload web build artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: flutter-web-build
-        path: manga_viewer/build/web
-  
-  # Flutter macOS build job
-  flutter-macos:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      
+      - name: Get dependencies
+        run: |
+          cd manga_viewer
+          flutter pub get
+      
+      - name: Build web
+        run: |
+          cd manga_viewer
+          flutter build web --release
+      
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: manga_viewer/build/web
+
+  mac:
     runs-on: macos-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        channel: 'stable'
-    
-    - name: Get dependencies
-      run: |
-        cd manga_viewer
-        flutter pub get
-    
-    - name: Build macOS app (debug)
-      run: |
-        cd manga_viewer
-        flutter build macos --debug
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      
+      - name: Get dependencies
+        run: |
+          cd manga_viewer
+          flutter pub get
+      
+      - name: Build macOS
+        run: |
+          cd manga_viewer
+          flutter build macos --debug
