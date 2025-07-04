@@ -76,6 +76,82 @@
   white-space: nowrap;
 }
 
+.page-speech {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-right: 10px;
+  min-width: 150px;
+}
+
+.speech-select {
+  width: 100%;
+  padding: 6px 8px;
+  background-color: #444;
+  color: #ddd;
+  border: 1px solid #555;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.speech-select:hover {
+  background-color: #555;
+  border-color: #666;
+}
+
+.speech-select:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+.speech-style-controls {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.style-select {
+  flex: 1;
+  min-width: 70px;
+  padding: 4px 6px;
+  background-color: #444;
+  color: #ddd;
+  border: 1px solid #555;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.style-select:hover {
+  background-color: #555;
+  border-color: #666;
+}
+
+.style-select:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+.color-picker {
+  width: 32px;
+  height: 26px;
+  padding: 2px;
+  background-color: #444;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.color-picker:hover {
+  border-color: #666;
+}
+
+.color-picker:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
 .page-actions {
   display: flex;
   gap: 5px;

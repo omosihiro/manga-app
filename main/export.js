@@ -35,6 +35,9 @@ async function exportProject(data, outputDir) {
         id: page.id,
         name: page.name,
         filename: `page_${index + 1}.png`,
+        speechId: page.speechId || null,
+        speechPos: page.speechPos || { x: 20, y: 20 },
+        speechStyle: page.speechStyle || { shape: 'rounded', color: 'white', borderColor: 'black', size: 'medium', animation: 'fadeIn' },
         // Remove base64 data from JSON
       })),
       speechData: data.speechData || [],

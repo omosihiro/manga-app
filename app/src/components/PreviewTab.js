@@ -1,41 +1,98 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import './PreviewTab.css';
 
-function PreviewTab({ pages, speechData, language }) {
-  const [speechBalloons, setSpeechBalloons] = useState([]);
+function PreviewTab({ pages, speechData, language, onPagesUpdate }) {
+  const [dragState, setDragState] = useState({
+    isDragging: false,
+    pageId: null,
+    startX: 0,
+    startY: 0,
+    offsetX: 0,
+    offsetY: 0
+  });
 
-  // Parse speech data to extract page and position info from IDs
-  useEffect(() => {
-    const balloons = speechData.map(item => {
-      // Extract page number and bubble position from ID
-      // Expected format: page1_bubble1, page2_bubble1, etc.
-      const match = item.id.match(/page(\d+)_bubble(\d+)/);
-      if (match) {
-        const pageNum = parseInt(match[1]) - 1; // Convert to 0-based index
-        const bubbleNum = parseInt(match[2]);
-        
-        // Default positions for speech balloons
-        // You can customize these based on your manga layout
-        const positions = {
-          1: { top: '10%', left: '60%' },
-          2: { top: '30%', left: '20%' },
-          3: { top: '50%', left: '70%' },
-          4: { top: '70%', left: '30%' },
-          5: { top: '85%', left: '50%' }
-        };
-        
-        return {
-          ...item,
-          pageIndex: pageNum,
-          bubbleNum: bubbleNum,
-          position: positions[bubbleNum] || { top: '50%', left: '50%' }
-        };
-      }
-      return null;
-    }).filter(Boolean);
+  // Helper function to find speech for a page
+  const getSpeechForPage = (page) => {
+    if (!page.speechId) return null;
     
-    setSpeechBalloons(balloons);
-  }, [speechData]);
+    // Convert both IDs to strings for comparison
+    return speechData.find(speech => 
+      String(speech.id) === String(page.speechId)
+    );
+  };
+
+  const handleMouseDown = (e, pageId, currentPos) => {
+    e.preventDefault();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const parentRect = e.currentTarget.parentElement.getBoundingClientRect();
+    
+    setDragState({
+      isDragging: true,
+      pageId: pageId,
+      startX: e.clientX,
+      startY: e.clientY,
+      offsetX: currentPos.x,
+      offsetY: currentPos.y
+    });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!dragState.isDragging) return;
+    
+    const deltaX = e.clientX - dragState.startX;
+    const deltaY = e.clientY - dragState.startY;
+    
+    const newX = dragState.offsetX + deltaX;
+    const newY = dragState.offsetY + deltaY;
+    
+    // Update the speech element position temporarily
+    const speechElement = document.querySelector(`[data-page-id="${dragState.pageId}"] .speech`);
+    if (speechElement) {
+      speechElement.style.left = `${newX}px`;
+      speechElement.style.top = `${newY}px`;
+    }
+  };
+
+  const handleMouseUp = (e) => {
+    if (!dragState.isDragging) return;
+    
+    const deltaX = e.clientX - dragState.startX;
+    const deltaY = e.clientY - dragState.startY;
+    
+    const newX = dragState.offsetX + deltaX;
+    const newY = dragState.offsetY + deltaY;
+    
+    // Update pages with new speechPos
+    const updatedPages = pages.map(page => 
+      page.id === dragState.pageId 
+        ? { ...page, speechPos: { x: newX, y: newY } }
+        : page
+    );
+    
+    onPagesUpdate(updatedPages);
+    
+    setDragState({
+      isDragging: false,
+      pageId: null,
+      startX: 0,
+      startY: 0,
+      offsetX: 0,
+      offsetY: 0
+    });
+  };
+
+  // Add global mouse event listeners
+  React.useEffect(() => {
+    if (dragState.isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [dragState, pages, onPagesUpdate]);
 
   return (
     <div className="preview-tab">
@@ -55,7 +112,7 @@ function PreviewTab({ pages, speechData, language }) {
         ) : (
           <div className="pages-container">
             {pages.map((page, pageIndex) => (
-              <div key={page.id} className="preview-page-wrapper">
+              <div key={page.id} className="preview-page-wrapper" data-page-id={page.id}>
                 <div className="page-number">Page {pageIndex + 1}</div>
                 <div className="preview-page">
                   <img 
@@ -64,25 +121,34 @@ function PreviewTab({ pages, speechData, language }) {
                     className="page-image"
                   />
                   
-                  {/* Render speech balloons for this page */}
-                  {speechBalloons
-                    .filter(balloon => balloon.pageIndex === pageIndex)
-                    .map((balloon, index) => (
-                      <div
-                        key={balloon.id}
-                        className="speech-balloon"
-                        style={{
-                          top: balloon.position.top,
-                          left: balloon.position.left
-                        }}
-                      >
-                        <div className="balloon-content">
-                          {balloon[language] || balloon.ja || balloon.en || '(empty)'}
-                        </div>
-                        <div className="balloon-tail"></div>
-                      </div>
-                    ))
-                  }
+                  {/* Render speech if page has speechId */}
+                  {(() => {
+                    const speech = getSpeechForPage(page);
+                    if (speech) {
+                      const currentLang = language || 'ja';
+                      const speechText = speech[currentLang] || speech.ja || speech.en || '';
+                      if (speechText) {
+                        const speechPos = page.speechPos || { x: 20, y: 20 };
+                        const speechStyle = page.speechStyle || { shape: 'rounded', color: 'white', borderColor: 'black', size: 'medium', animation: 'fadeIn' };
+                        const animationClass = speechStyle.animation !== 'none' ? `animate-${speechStyle.animation}` : '';
+                        return (
+                          <div 
+                            className={`speech draggable speech-${speechStyle.shape} speech-${speechStyle.size} ${animationClass}`}
+                            style={{
+                              left: speechPos.x,
+                              top: speechPos.y,
+                              backgroundColor: speechStyle.color || '#ffffff',
+                              borderColor: speechStyle.borderColor || '#000000'
+                            }}
+                            onMouseDown={(e) => handleMouseDown(e, page.id, speechPos)}
+                          >
+                            {speechText}
+                          </div>
+                        );
+                      }
+                    }
+                    return null;
+                  })()}
                 </div>
               </div>
             ))}

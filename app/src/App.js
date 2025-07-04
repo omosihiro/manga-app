@@ -149,7 +149,7 @@ function App() {
   const renderContent = () => {
     switch (activeTab) {
       case 'ページ':
-        return <PagesPanel pages={pages} onPagesUpdate={setPages} />;
+        return <PagesPanel pages={pages} onPagesUpdate={setPages} speechData={speechData} />;
       case 'セリフ':
         return (
           <SpeechTab 
@@ -165,6 +165,7 @@ function App() {
             pages={pages} 
             speechData={speechData}
             language={language}
+            onPagesUpdate={setPages}
           />
         );
       default:

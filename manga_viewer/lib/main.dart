@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:archive/archive.dart';
+import 'widgets/animated_speech_bubble.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,6 +39,7 @@ class _MangaViewerState extends State<MangaViewer> {
   Map<String, dynamic>? _creatorData;
   bool _isLoading = false;
   String? _error;
+  String _currentLanguage = 'ja';
 
   Future<void> _pickAndLoadZip() async {
     setState(() {
@@ -106,12 +108,49 @@ class _MangaViewerState extends State<MangaViewer> {
     }
   }
 
+  Map<String, dynamic>? _getPageData(int index) {
+    if (_creatorData == null || _creatorData!['pages'] == null) return null;
+    final pages = _creatorData!['pages'] as List;
+    if (index >= pages.length) return null;
+    return pages[index] as Map<String, dynamic>;
+  }
+
+  Map<String, dynamic>? _getSpeechForPage(Map<String, dynamic>? pageData) {
+    if (pageData == null || pageData['speechId'] == null) return null;
+    if (_creatorData == null || _creatorData!['speechData'] == null) return null;
+    
+    final speechId = pageData['speechId'].toString();
+    final speechList = _creatorData!['speechData'] as List;
+    
+    try {
+      return speechList.firstWhere(
+        (speech) => speech['id'].toString() == speechId,
+      ) as Map<String, dynamic>;
+    } catch (e) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manga Viewer'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          if (_creatorData != null)
+            IconButton(
+              icon: Text(
+                _currentLanguage.toUpperCase(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                setState(() {
+                  _currentLanguage = _currentLanguage == 'ja' ? 'en' : 'ja';
+                });
+              },
+            ),
+        ],
       ),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
@@ -192,20 +231,38 @@ class _MangaViewerState extends State<MangaViewer> {
           child: ListView.builder(
             itemCount: _pages.length,
             itemBuilder: (context, index) {
+              final pageData = _getPageData(index);
+              final speechData = _getSpeechForPage(pageData);
+              
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Image.memory(
-                  _pages[index],
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 200,
-                      color: Colors.grey[300],
-                      child: const Center(
-                        child: Icon(Icons.broken_image, size: 48),
+                child: Stack(
+                  children: [
+                    Image.memory(
+                      _pages[index],
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 200,
+                          color: Colors.grey[300],
+                          child: const Center(
+                            child: Icon(Icons.broken_image, size: 48),
+                          ),
+                        );
+                      },
+                    ),
+                    if (speechData != null && pageData != null)
+                      Positioned(
+                        left: (pageData['speechPos']?['x'] ?? 20).toDouble(),
+                        top: (pageData['speechPos']?['y'] ?? 20).toDouble(),
+                        child: AnimatedSpeechBubble(
+                          style: pageData['speechStyle'] ?? {},
+                          text: speechData[_currentLanguage] ?? 
+                                speechData['ja'] ?? 
+                                speechData['en'] ?? '',
+                        ),
                       ),
-                    );
-                  },
+                  ],
                 ),
               );
             },

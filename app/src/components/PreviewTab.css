@@ -85,6 +85,203 @@
   display: block;
 }
 
+/* Speech Styles */
+.speech {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.95);
+  color: #000;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 2px solid #000;
+  font-size: 14px;
+  line-height: 1.4;
+  max-width: 300px;
+  font-weight: 500;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  word-wrap: break-word;
+  z-index: 10;
+  transition: box-shadow 0.2s ease;
+}
+
+.speech.draggable {
+  cursor: move;
+  user-select: none;
+}
+
+.speech.draggable:hover {
+  box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+.speech.draggable:active {
+  cursor: grabbing;
+  box-shadow: 4px 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* Speech Bubble Shapes */
+.speech-rounded {
+  border-radius: 16px;
+}
+
+.speech-cloud {
+  border-radius: 50% 40% 50% 40%;
+  position: relative;
+}
+
+.speech-cloud::before,
+.speech-cloud::after {
+  content: '';
+  position: absolute;
+  background-color: inherit;
+  border: inherit;
+  border-radius: 50%;
+}
+
+.speech-cloud::before {
+  width: 20px;
+  height: 20px;
+  bottom: -10px;
+  left: 20px;
+}
+
+.speech-cloud::after {
+  width: 12px;
+  height: 12px;
+  bottom: -15px;
+  left: 10px;
+}
+
+.speech-sharp {
+  border-radius: 4px;
+  position: relative;
+}
+
+.speech-sharp::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 20px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid;
+  border-top-color: inherit;
+}
+
+.speech-thought {
+  border-radius: 50% 40% 50% 40%;
+  border-style: solid;
+  position: relative;
+}
+
+.speech-thought::before,
+.speech-thought::after {
+  content: '';
+  position: absolute;
+  background-color: inherit;
+  border: 2px solid;
+  border-color: inherit;
+  border-radius: 50%;
+}
+
+.speech-thought::before {
+  width: 16px;
+  height: 16px;
+  bottom: -12px;
+  left: 20px;
+}
+
+.speech-thought::after {
+  width: 10px;
+  height: 10px;
+  bottom: -20px;
+  left: 15px;
+}
+
+/* Speech Bubble Sizes */
+.speech-small {
+  font-size: 12px;
+  padding: 8px 12px;
+  max-width: 200px;
+}
+
+.speech-medium {
+  font-size: 14px;
+  padding: 12px 16px;
+  max-width: 300px;
+}
+
+.speech-large {
+  font-size: 16px;
+  padding: 16px 20px;
+  max-width: 400px;
+}
+
+/* Speech Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes zoom {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.4s ease-out;
+}
+
+.animate-bounce {
+  animation: bounce 0.6s ease-out;
+}
+
+.animate-zoom {
+  animation: zoom 0.3s ease-out;
+}
+
 /* Speech Balloon Styles */
 .speech-balloon {
   position: absolute;
