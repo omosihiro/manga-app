@@ -25,6 +25,9 @@ jobs:
 
   web:
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,12 +45,20 @@ jobs:
       - name: Build web
         run: |
           cd manga_viewer
-          flutter build web --release
+          flutter build web --release --base-href=/manga-app/
       
       - name: Upload web build
         uses: actions/upload-artifact@v4
         with:
           name: web-build
+          path: manga_viewer/build/web
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
           path: manga_viewer/build/web
 
   mac:
@@ -70,3 +81,18 @@ jobs:
         run: |
           cd manga_viewer
           flutter build macos --debug
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: web
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -23,3 +23,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  
+  # Test assets
+  assets:
+    - assets/test_1x1.webp
