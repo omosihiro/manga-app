@@ -7,6 +7,12 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [findText, setFindText] = useState('');
+  const [replaceText, setReplaceText] = useState('');
+  const [validationErrors, setValidationErrors] = useState([]);
+  const [showValidationModal, setShowValidationModal] = useState(false);
+  const [pendingImportData, setPendingImportData] = useState(null);
+  const [autoTranslatedRows, setAutoTranslatedRows] = useState(new Set());
 
   const parseCSV = (text) => {
     const rows = [];
@@ -95,6 +101,32 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
     });
   };
 
+  const validateData = (data) => {
+    const errors = [];
+    
+    // Check for duplicate IDs
+    const idMap = new Map();
+    data.forEach((row, index) => {
+      if (idMap.has(row.id)) {
+        errors.push(`Duplicate ID '${row.id}' found at rows ${idMap.get(row.id) + 1} and ${index + 1}`);
+      } else {
+        idMap.set(row.id, index);
+      }
+    });
+    
+    // Check for empty ja/en fields
+    data.forEach((row, index) => {
+      if (!row.ja || row.ja.trim() === '') {
+        errors.push(`Row ${index + 1} (ID: ${row.id}) has empty Japanese text`);
+      }
+      if (!row.en || row.en.trim() === '') {
+        errors.push(`Row ${index + 1} (ID: ${row.id}) has empty English text`);
+      }
+    });
+    
+    return errors;
+  };
+
   const handleFileUpload = (file) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -111,12 +143,36 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
           return;
         }
         
-        onSpeechDataUpdate(data);
+        // Validate the data
+        const errors = validateData(data);
+        
+        if (errors.length > 0) {
+          setValidationErrors(errors);
+          setPendingImportData(data);
+          setShowValidationModal(true);
+        } else {
+          onSpeechDataUpdate(data);
+        }
       } catch (error) {
         alert(`Error parsing file: ${error.message}`);
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleImportAnyway = () => {
+    if (pendingImportData) {
+      onSpeechDataUpdate(pendingImportData);
+      setShowValidationModal(false);
+      setPendingImportData(null);
+      setValidationErrors([]);
+    }
+  };
+
+  const handleAbortImport = () => {
+    setShowValidationModal(false);
+    setPendingImportData(null);
+    setValidationErrors([]);
   };
 
   const handleDragOver = (e) => {
@@ -149,7 +205,60 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
   const handleCellEdit = (rowIndex, field, value) => {
     const newData = [...speechData];
     newData[rowIndex][field] = value;
+    
+    // Remove auto-translated flag if user manually edits English text
+    if (field === 'en' && autoTranslatedRows.has(rowIndex)) {
+      setAutoTranslatedRows(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(rowIndex);
+        return newSet;
+      });
+    }
+    
     onSpeechDataUpdate(newData);
+  };
+
+  // Mock Google Translate API (replace with actual API call if key is available)
+  const translateText = async (text) => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Simple mock translation - in production, use actual Google Translate API
+    // if (process.env.REACT_APP_GOOGLE_TRANSLATE_KEY) {
+    //   // Call actual Google Translate API
+    // }
+    
+    // Mock translation: reverse the Japanese text as a placeholder
+    const mockTranslations = {
+      'こんにちは': 'Hello',
+      'ありがとう': 'Thank you',
+      'さようなら': 'Goodbye',
+      'はい': 'Yes',
+      'いいえ': 'No'
+    };
+    
+    return mockTranslations[text] || `[Auto] ${text}`;
+  };
+
+  const handleJapaneseBlur = async (rowIndex) => {
+    const row = speechData[rowIndex];
+    
+    // Only translate if English is empty and Japanese has content
+    if ((!row.en || row.en.trim() === '') && row.ja && row.ja.trim() !== '') {
+      try {
+        const translatedText = await translateText(row.ja);
+        
+        // Update the English text
+        const newData = [...speechData];
+        newData[rowIndex].en = translatedText;
+        onSpeechDataUpdate(newData);
+        
+        // Mark as auto-translated
+        setAutoTranslatedRows(prev => new Set(prev).add(rowIndex));
+      } catch (error) {
+        console.error('Translation error:', error);
+      }
+    }
   };
 
   const handleTextareaKeyDown = (e, rowIndex, field) => {
@@ -240,6 +349,21 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
       newSet.delete(index);
       return newSet;
     });
+    // Clear auto-translated flag for deleted row
+    setAutoTranslatedRows(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(index);
+      // Adjust indices for rows after the deleted one
+      const adjustedSet = new Set();
+      newSet.forEach(idx => {
+        if (idx > index) {
+          adjustedSet.add(idx - 1);
+        } else if (idx < index) {
+          adjustedSet.add(idx);
+        }
+      });
+      return adjustedSet;
+    });
   };
 
   const deleteSelectedRows = useCallback(() => {
@@ -252,7 +376,6 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
   const duplicateSelectedRows = useCallback(() => {
     if (selectedRows.size === 0) return;
     
-    const newRows = [];
     const sortedIndices = Array.from(selectedRows).sort((a, b) => a - b);
     
     // Get the current max ID first
@@ -264,20 +387,34 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
       }
     });
     
-    sortedIndices.forEach((index, i) => {
-      const originalRow = speechData[index];
+    // Create new data array with duplicates inserted after each original
+    const newData = [...speechData];
+    let insertOffset = 0;
+    
+    sortedIndices.forEach((originalIndex, i) => {
+      const insertIndex = originalIndex + insertOffset + 1;
+      const originalRow = speechData[originalIndex];
       const newRow = {
         ...originalRow,
         id: `speech${maxNum + i + 1}`,
         ja: originalRow.ja,
         en: originalRow.en
       };
-      newRows.push(newRow);
+      newData.splice(insertIndex, 0, newRow);
+      insertOffset++;
     });
     
-    onSpeechDataUpdate([...speechData, ...newRows]);
+    onSpeechDataUpdate(newData);
     setSelectedRows(new Set());
   }, [selectedRows, speechData, onSpeechDataUpdate]);
+
+  const resequenceIds = useCallback(() => {
+    const newData = speechData.map((row, index) => ({
+      ...row,
+      id: `speech${index + 1}`
+    }));
+    onSpeechDataUpdate(newData);
+  }, [speechData, onSpeechDataUpdate]);
 
   const handleRowClick = (e, index) => {
     e.preventDefault();
@@ -339,6 +476,16 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [speechData, selectedRows, deleteSelectedRows]);
+
+  // Get color class for character count
+  const getCharCountClass = (length) => {
+    if (length === 0) return 'char-count-empty';
+    if (length <= 20) return 'char-count-short';
+    if (length <= 40) return 'char-count-medium';
+    if (length <= 60) return 'char-count-long';
+    if (length <= 80) return 'char-count-very-long';
+    return 'char-count-extreme';
+  };
 
   // Auto-adjust textarea heights when data changes
   React.useEffect(() => {
@@ -402,6 +549,48 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
     }
   }, [searchQuery]);
 
+  // Replace All function
+  const handleReplaceAll = useCallback(() => {
+    if (!findText.trim()) return;
+    
+    const find = findText.toLowerCase();
+    let replacedCount = 0;
+    
+    const newData = speechData.map(row => {
+      let jaUpdated = row.ja;
+      let enUpdated = row.en;
+      let rowChanged = false;
+      
+      // Case-insensitive replace for Japanese text
+      if (row.ja && row.ja.toLowerCase().includes(find)) {
+        const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        jaUpdated = row.ja.replace(regex, replaceText);
+        rowChanged = true;
+      }
+      
+      // Case-insensitive replace for English text
+      if (row.en && row.en.toLowerCase().includes(find)) {
+        const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        enUpdated = row.en.replace(regex, replaceText);
+        rowChanged = true;
+      }
+      
+      if (rowChanged) {
+        replacedCount++;
+        return { ...row, ja: jaUpdated, en: enUpdated };
+      }
+      
+      return row;
+    });
+    
+    if (replacedCount > 0) {
+      onSpeechDataUpdate(newData);
+      alert(`Replaced in ${replacedCount} rows`);
+    } else {
+      alert('No matches found');
+    }
+  }, [findText, replaceText, speechData, onSpeechDataUpdate]);
+
   return (
     <div className="speech-tab">
       <div className="speech-header">
@@ -460,6 +649,33 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
             </div>
           )}
           
+          <div className="find-replace-controls">
+            <div className="find-replace-inputs">
+              <input
+                type="text"
+                placeholder="Find..."
+                value={findText}
+                onChange={(e) => setFindText(e.target.value)}
+                className="find-input"
+              />
+              <input
+                type="text"
+                placeholder="Replace with..."
+                value={replaceText}
+                onChange={(e) => setReplaceText(e.target.value)}
+                className="replace-input"
+              />
+              <button
+                className="replace-all-btn"
+                onClick={handleReplaceAll}
+                disabled={!findText.trim()}
+                title="Replace all occurrences in ja and en fields"
+              >
+                Replace All
+              </button>
+            </div>
+          </div>
+          
           <div className="table-controls">
             <div className="search-container">
               <input
@@ -500,6 +716,13 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
               title="Export to CSV"
             >
               Export CSV
+            </button>
+            <button 
+              onClick={resequenceIds} 
+              className="resequence-btn"
+              title="Resequence all IDs starting from 1"
+            >
+              Resequence IDs
             </button>
             <input
               ref={fileInputRef}
@@ -578,13 +801,16 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
                           }}
                           onKeyDown={(e) => handleTextareaKeyDown(e, originalIndex, 'ja')}
                           onFocus={(e) => adjustTextareaHeight(e.target)}
+                          onBlur={() => handleJapaneseBlur(originalIndex)}
                           className="cell-textarea auto-grow"
                           rows="1"
                           placeholder="Japanese text (⌥↩ for new line)"
                         />
                       )}
-                      {row.ja.length > 60 && (
-                        <span className="char-counter over-limit">{row.ja.length}</span>
+                      {row.ja && (
+                        <span className={`char-counter ${getCharCountClass(row.ja.length)}`}>
+                          {row.ja.length}
+                        </span>
                       )}
                     </div>
                   </td>
@@ -592,7 +818,7 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
                     <div className="textarea-cell">
                       {searchQuery ? (
                         <div className="textarea-highlight-container">
-                          <div className="textarea-highlight-text">
+                          <div className={`textarea-highlight-text ${autoTranslatedRows.has(originalIndex) ? 'auto-translated' : ''}`}>
                             {highlightText(row.en)}
                           </div>
                         </div>
@@ -605,13 +831,15 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
                           }}
                           onKeyDown={(e) => handleTextareaKeyDown(e, originalIndex, 'en')}
                           onFocus={(e) => adjustTextareaHeight(e.target)}
-                          className="cell-textarea auto-grow"
+                          className={`cell-textarea auto-grow ${autoTranslatedRows.has(originalIndex) ? 'auto-translated' : ''}`}
                           rows="1"
                           placeholder="English text (⌥↩ for new line)"
                         />
                       )}
-                      {row.en.length > 60 && (
-                        <span className="char-counter over-limit">{row.en.length}</span>
+                      {row.en && (
+                        <span className={`char-counter ${getCharCountClass(row.en.length)}`}>
+                          {row.en.length}
+                        </span>
                       )}
                     </div>
                   </td>
@@ -621,6 +849,9 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
                     )}
                     {isMissingEn && (
                       <span className="translation-badge missing-en">未翻訳</span>
+                    )}
+                    {autoTranslatedRows.has(originalIndex) && !isMissingEn && (
+                      <span className="translation-badge auto-badge">Auto</span>
                     )}
                   </td>
                   <td>
@@ -637,6 +868,41 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
               })}
             </tbody>
           </table>
+        </div>
+      )}
+      
+      {/* Validation Error Modal */}
+      {showValidationModal && (
+        <div className="validation-modal-overlay" onClick={handleAbortImport}>
+          <div className="validation-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Import Validation Errors</h2>
+            <p className="validation-warning">
+              The following issues were found in the CSV/TSV file:
+            </p>
+            
+            <div className="validation-errors-list">
+              {validationErrors.map((error, index) => (
+                <div key={index} className="validation-error-item">
+                  • {error}
+                </div>
+              ))}
+            </div>
+            
+            <div className="validation-modal-actions">
+              <button 
+                className="abort-btn"
+                onClick={handleAbortImport}
+              >
+                Abort Import
+              </button>
+              <button 
+                className="import-anyway-btn"
+                onClick={handleImportAnyway}
+              >
+                Import Anyway
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

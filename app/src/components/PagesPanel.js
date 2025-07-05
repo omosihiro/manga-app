@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { MdBlock, MdOpacity, MdSlideshow, MdAnimation, MdZoomIn } from 'react-icons/md';
 import './PagesPanel.css';
 
 function PagesPanel({ pages, onPagesUpdate, speechData }) {
@@ -519,19 +520,24 @@ function PagesPanel({ pages, onPagesUpdate, speechData }) {
                                 </div>
                               </div>
                               
-                              {/* Animation radio chips */}
-                              <div className="animation-chips">
-                                {['none', 'fade', 'slide', 'bounce', 'zoom'].map(anim => (
-                                  <label key={anim} className="radio-chip">
-                                    <input
-                                      type="radio"
-                                      name={`anim-${page.id}`}
-                                      value={anim}
-                                      checked={(page.speechStyle?.anim || 'fade') === anim}
-                                      onChange={(e) => updatePageSpeechStyle(page.id, 'anim', e.target.value)}
-                                    />
-                                    <span className="chip-label">{anim.charAt(0).toUpperCase() + anim.slice(1)}</span>
-                                  </label>
+                              {/* Animation icon buttons */}
+                              <div className="animation-buttons">
+                                {[
+                                  { value: 'none', icon: MdBlock, tooltip: 'No animation' },
+                                  { value: 'fade', icon: MdOpacity, tooltip: 'Fade in' },
+                                  { value: 'slide', icon: MdSlideshow, tooltip: 'Slide in' },
+                                  { value: 'bounce', icon: MdAnimation, tooltip: 'Bounce in' },
+                                  { value: 'zoom', icon: MdZoomIn, tooltip: 'Zoom in' }
+                                ].map(({ value, icon: Icon, tooltip }) => (
+                                  <button
+                                    key={value}
+                                    type="button"
+                                    className={`icon-button ${(page.speechStyle?.anim || 'none') === value ? 'active' : ''}`}
+                                    onClick={() => updatePageSpeechStyle(page.id, 'anim', value)}
+                                    title={tooltip}
+                                  >
+                                    <Icon size={18} />
+                                  </button>
                                 ))}
                               </div>
                               
