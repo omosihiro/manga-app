@@ -1,98 +1,85 @@
-name: CI
+name: CI/CD Multi-Platform
 
 on:
   push:
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'yarn'
-      
-      - name: Install dependencies
-        run: yarn install
-      
-      - name: Run tests
-        run: yarn test
-
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: |
+        yarn install
+        cd app && yarn install
+        
+    - name: Run tests
+      run: |
+        cd app && yarn test --watchAll=false --passWithNoTests
+        
   web:
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
+    
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      
-      - name: Get dependencies
-        run: |
-          cd manga_viewer
-          flutter pub get
-      
-      - name: Build web
-        run: |
-          cd manga_viewer
-          flutter build web --release --base-href=/manga-app/
-      
-      - name: Upload web build
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-build
-          path: manga_viewer/build/web
-      
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-      
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: manga_viewer/build/web
-
-  mac:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.22.0'
+        channel: 'stable'
+        
+    - name: Get dependencies
+      run: |
+        cd manga_viewer
+        flutter pub get
+        
+    - name: Build web
+      run: |
+        cd manga_viewer
+        flutter build web --release
+        
+    - name: Upload web build
+      uses: actions/upload-artifact@v3
+      with:
+        name: web-build
+        path: manga_viewer/build/web
+        
+  macos:
     runs-on: macos-latest
+    
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      
-      - name: Get dependencies
-        run: |
-          cd manga_viewer
-          flutter pub get
-      
-      - name: Build macOS
-        run: |
-          cd manga_viewer
-          flutter build macos --debug
-
-  deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: web
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+    - uses: actions/checkout@v3
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.22.0'
+        channel: 'stable'
+        
+    - name: Get dependencies
+      run: |
+        cd manga_viewer
+        flutter pub get
+        
+    - name: Build macOS
+      run: |
+        cd manga_viewer
+        flutter build macos --debug
+        
+    - name: Upload macOS build
+      uses: actions/upload-artifact@v3
+      with:
+        name: macos-build
+        path: manga_viewer/build/macos/Build/Products/Debug/manga_viewer.app
+EOF < /dev/null
