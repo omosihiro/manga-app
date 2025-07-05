@@ -7,7 +7,9 @@ class SettingsManager {
     this.app = app;
     this.settingsPath = path.join(app.getPath('userData'), 'settings.json');
     this.defaultSettings = {
-      exportPath: path.join(os.homedir(), 'Documents', 'MangaExports')
+      exportPath: path.join(os.homedir(), 'Documents', 'MangaExports'),
+      sweetSpot: 600,
+      delayRows: 1
     };
     this.settings = null;
   }
@@ -56,6 +58,36 @@ class SettingsManager {
       console.error('Error creating export directory:', error);
     }
     return exportPath;
+  }
+
+  async getSweetSpot() {
+    if (!this.settings) {
+      await this.loadSettings();
+    }
+    return this.settings.sweetSpot || 600;
+  }
+
+  async setSweetSpot(value) {
+    if (!this.settings) {
+      await this.loadSettings();
+    }
+    this.settings.sweetSpot = value;
+    await this.saveSettings();
+  }
+
+  async getDelayRows() {
+    if (!this.settings) {
+      await this.loadSettings();
+    }
+    return this.settings.delayRows || 1;
+  }
+
+  async setDelayRows(value) {
+    if (!this.settings) {
+      await this.loadSettings();
+    }
+    this.settings.delayRows = value;
+    await this.saveSettings();
   }
 }
 

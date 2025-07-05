@@ -105,6 +105,50 @@
     .save-button:hover {
       background-color: #0077ee;
     }
+
+    .slider-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .slider {
+      flex: 1;
+      height: 6px;
+      background-color: #2a2a2a;
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      background-color: #0066cc;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .slider::-webkit-slider-thumb:hover {
+      background-color: #0077ee;
+    }
+
+    .slider-value {
+      min-width: 50px;
+      text-align: right;
+      font-size: 14px;
+      font-weight: 500;
+      color: #ddd;
+    }
+
+    .slider-hint {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -116,6 +160,24 @@
       <input type="text" class="path-input" id="exportPath" readonly>
       <button class="browse-button" id="browseButton">Browse…</button>
     </div>
+  </div>
+
+  <div class="preference-section">
+    <div class="preference-label">Sweet Spot (px)</div>
+    <div class="slider-group">
+      <input type="range" class="slider" id="sweetSpotSlider" min="200" max="1000" value="600" step="50">
+      <span class="slider-value" id="sweetSpotValue">600</span>
+    </div>
+    <div class="slider-hint">Distance after which next speech row appears</div>
+  </div>
+
+  <div class="preference-section">
+    <div class="preference-label">Delay Rows</div>
+    <div class="slider-group">
+      <input type="range" class="slider" id="delayRowsSlider" min="0" max="5" value="1" step="1">
+      <span class="slider-value" id="delayRowsValue">1</span>
+    </div>
+    <div class="slider-hint">Speech row delay per page (0 = no delay)</div>
   </div>
 
   <div class="actions">

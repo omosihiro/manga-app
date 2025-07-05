@@ -77,7 +77,7 @@ function createPreferencesWindow() {
   });
 
   // Load preferences HTML
-  preferencesWindow.loadFile(path.join(__dirname, '..', 'app', 'public', 'preferences.html'));
+  preferencesWindow.loadFile(path.join(__dirname, 'preferences.html'));
 
   preferencesWindow.on('closed', () => {
     preferencesWindow = null;

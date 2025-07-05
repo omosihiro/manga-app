@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './PreviewTab.css';
 
-function PreviewTab({ pages, speechData, language, onPagesUpdate }) {
+function PreviewTab({ pages, speechData, language, onPagesUpdate, sweetSpot, onSweetSpotChange }) {
   const [dragState, setDragState] = useState({
     isDragging: false,
     pageId: null,
@@ -10,16 +10,42 @@ function PreviewTab({ pages, speechData, language, onPagesUpdate }) {
     offsetX: 0,
     offsetY: 0
   });
+  const [currentRow, setCurrentRow] = useState(0);
+  const scrollContainerRef = useRef(null);
 
   // Helper function to find speech for a page
   const getSpeechForPage = (page) => {
     if (!page.speechId) return null;
     
-    // Convert both IDs to strings for comparison
-    return speechData.find(speech => 
+    // Find all speeches with matching ID
+    const matchingSpeech = speechData.filter(speech => 
       String(speech.id) === String(page.speechId)
     );
+    
+    if (matchingSpeech.length === 0) return null;
+    
+    // Return the speech at current row index (cycling if necessary)
+    return matchingSpeech[currentRow % matchingSpeech.length];
   };
+
+  // Handle scroll events
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollContainerRef.current) {
+        const scrollTop = scrollContainerRef.current.scrollTop;
+        const idx = Math.floor(scrollTop / (sweetSpot || 600));
+        if (idx !== currentRow) {
+          setCurrentRow(idx);
+        }
+      }
+    };
+
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [currentRow, sweetSpot]);
 
   const handleMouseDown = (e, pageId, currentPos) => {
     e.preventDefault();
@@ -98,12 +124,28 @@ function PreviewTab({ pages, speechData, language, onPagesUpdate }) {
     <div className="preview-tab">
       <div className="preview-header">
         <h2>Preview</h2>
-        <span className="preview-info">
-          {pages.length} pages | {speechData.length} dialogues | Language: {language.toUpperCase()}
-        </span>
+        <div className="preview-controls">
+          <div className="sweet-spot-control">
+            <label htmlFor="sweet-spot">Sweet Spot:</label>
+            <input
+              id="sweet-spot"
+              type="number"
+              min="100"
+              max="2000"
+              step="50"
+              value={sweetSpot}
+              onChange={(e) => onSweetSpotChange(parseInt(e.target.value))}
+              className="sweet-spot-input"
+            />
+            <span className="sweet-spot-unit">px</span>
+          </div>
+          <span className="preview-info">
+            {pages.length} pages | {speechData.length} dialogues | Language: {language.toUpperCase()}
+          </span>
+        </div>
       </div>
       
-      <div className="preview-scroll-container">
+      <div className="preview-scroll-container" ref={scrollContainerRef}>
         {pages.length === 0 ? (
           <div className="no-content">
             <p>No pages added yet</p>

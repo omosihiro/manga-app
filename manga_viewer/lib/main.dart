@@ -41,6 +41,10 @@ class _MangaViewerState extends State<MangaViewer> {
   bool _isLoading = false;
   String? _error;
   String _currentLanguage = 'ja';
+  final ScrollController _scrollController = ScrollController();
+  int _currentRow = 0;
+  double _sweetSpot = 600;
+  int _delayRows = 1; // Number of rows to delay per page index
 
   Future<void> _pickAndLoadZip() async {
     setState(() {
@@ -95,6 +99,11 @@ class _MangaViewerState extends State<MangaViewer> {
         setState(() {
           _pages = pages;
           _isLoading = false;
+          _currentRow = 0;
+          // Get sweetSpot from creator data
+          _sweetSpot = (_creatorData?['sweetSpot'] ?? 600).toDouble();
+          // Get delayRows from creator data (if available)
+          _delayRows = _creatorData?['delayRows'] ?? 1;
         });
       } else {
         setState(() {
@@ -116,7 +125,7 @@ class _MangaViewerState extends State<MangaViewer> {
     return pages[index] as Map<String, dynamic>;
   }
 
-  Map<String, dynamic>? _getSpeechForPage(Map<String, dynamic>? pageData) {
+  Map<String, dynamic>? _getSpeechForPage(Map<String, dynamic>? pageData, int pageIndex) {
     if (pageData == null || pageData['speechId'] == null) return null;
     if (_creatorData == null || _creatorData!['speechData'] == null) return null;
     
@@ -124,12 +133,41 @@ class _MangaViewerState extends State<MangaViewer> {
     final speechList = _creatorData!['speechData'] as List;
     
     try {
-      return speechList.firstWhere(
+      // Find all speeches with matching ID
+      final matchingSpeech = speechList.where(
         (speech) => speech['id'].toString() == speechId,
-      ) as Map<String, dynamic>;
+      ).toList();
+      
+      if (matchingSpeech.isEmpty) return null;
+      
+      // Calculate effective row for this page
+      // pageOffset = pageIndex * delayRows
+      // effectiveRow = max(0, currentRow - pageOffset)
+      final pageOffset = pageIndex * _delayRows;
+      final effectiveRow = (_currentRow - pageOffset).clamp(0, double.infinity).toInt();
+      
+      // Return the speech at effective row index (cycling if necessary)
+      return matchingSpeech[effectiveRow % matchingSpeech.length] as Map<String, dynamic>;
     } catch (e) {
       return null;
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      final idx = (_scrollController.offset / _sweetSpot).floor();
+      if (idx != _currentRow) {
+        setState(() => _currentRow = idx);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -219,7 +257,7 @@ class _MangaViewerState extends State<MangaViewer> {
                 ),
                 const Spacer(),
                 Text(
-                  '${_pages.length} pages',
+                  '${_pages.length} pages | Sweet: ${_sweetSpot.toInt()}px | Row: $_currentRow | Delay: $_delayRows',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
@@ -227,10 +265,11 @@ class _MangaViewerState extends State<MangaViewer> {
           ),
         Expanded(
           child: ListView.builder(
+            controller: _scrollController,
             itemCount: _pages.length,
             itemBuilder: (context, index) {
               final pageData = _getPageData(index);
-              final speechData = _getSpeechForPage(pageData);
+              final speechData = _getSpeechForPage(pageData, index);
               
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),

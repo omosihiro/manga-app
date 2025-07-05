@@ -16,6 +16,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getExportPath: () => ipcRenderer.invoke('get-export-path'),
   setExportPath: (path) => ipcRenderer.invoke('set-export-path', path),
   openExportFolder: () => ipcRenderer.invoke('open-export-folder'),
+  getSweetSpot: () => ipcRenderer.invoke('get-sweet-spot'),
+  setSweetSpot: (value) => ipcRenderer.invoke('set-sweet-spot', value),
+  getDelayRows: () => ipcRenderer.invoke('get-delay-rows'),
+  setDelayRows: (value) => ipcRenderer.invoke('set-delay-rows', value),
   // Preferences window APIs
   getPreferencesSettings: () => ipcRenderer.invoke('preferences:getSettings'),
   selectPreferencesFolder: () => ipcRenderer.invoke('preferences:selectFolder'),

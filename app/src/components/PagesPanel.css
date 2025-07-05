@@ -40,6 +40,94 @@
   gap: 10px;
 }
 
+.pages-groups {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.page-group {
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #2a2a2a;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.group-header:hover {
+  background-color: #333;
+}
+
+.group-toggle {
+  width: 20px;
+  font-size: 12px;
+  color: #888;
+}
+
+.group-name {
+  flex: 1;
+  font-weight: 600;
+  color: #ddd;
+  margin-left: 8px;
+}
+
+.group-count {
+  font-size: 12px;
+  color: #888;
+}
+
+.group-content {
+  padding: 10px;
+  min-height: 100px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.group-content.drag-over {
+  background-color: #2a3a4a;
+  box-shadow: inset 0 0 10px rgba(0, 102, 204, 0.3);
+}
+
+.group-content.drag-over::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed #0066cc;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.empty-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80px;
+  border: 2px dashed #444;
+  border-radius: 8px;
+  color: #666;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.empty-group.drag-over {
+  border-color: #0066cc;
+  background-color: rgba(0, 102, 204, 0.1);
+  color: #0066cc;
+}
+
 .page-item {
   display: flex;
   align-items: center;
@@ -47,6 +135,28 @@
   border-radius: 8px;
   padding: 10px;
   gap: 10px;
+  cursor: grab;
+  transition: all 0.2s ease;
+}
+
+.page-item:hover {
+  background-color: #333;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.page-item.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+  transform: scale(0.95);
+}
+
+.page-item.drag-preview {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  transform: rotate(3deg);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
 }
 
 .page-item img {

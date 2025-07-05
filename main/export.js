@@ -58,6 +58,13 @@ async function exportProject(data, outputDir) {
     
     // Add creator.json
     const creatorData = {
+      sections: data.sections || [
+        { name: 'Start', startIndex: 0 },
+        { name: 'Normal', startIndex: 0 },
+        { name: 'Big', startIndex: 0 }
+      ],
+      sweetSpot: data.sweetSpot || 600,
+      delayRows: data.delayRows || 1,
       pages: (data.pages || []).map((page, index) => ({
         id: page.id,
         name: page.name,

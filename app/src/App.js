@@ -36,10 +36,18 @@ function App() {
   const [lastSaveTime, setLastSaveTime] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [sections, setSections] = useState([
+    { name: 'Start', startIndex: 0 },
+    { name: 'Normal', startIndex: 0 },
+    { name: 'Big', startIndex: 0 }
+  ]);
+  const [sweetSpot, setSweetSpot] = useState(600);
+  const [delayRows, setDelayRows] = useState(1);
 
   // Load project on startup
   useEffect(() => {
     loadProject();
+    loadSettings();
   }, []);
 
   // Keyboard shortcuts for undo/redo
@@ -73,6 +81,20 @@ function App() {
     }
   }, [pages, speechData, language]);
 
+  // Save sweet spot to settings when it changes
+  useEffect(() => {
+    if (window.electronAPI && window.electronAPI.setSweetSpot) {
+      window.electronAPI.setSweetSpot(sweetSpot);
+    }
+  }, [sweetSpot]);
+
+  // Save delay rows to settings when it changes
+  useEffect(() => {
+    if (window.electronAPI && window.electronAPI.setDelayRows) {
+      window.electronAPI.setDelayRows(delayRows);
+    }
+  }, [delayRows]);
+
   const loadProject = async () => {
     if (window.electronAPI && window.electronAPI.loadProject) {
       const result = await window.electronAPI.loadProject();
@@ -81,16 +103,54 @@ function App() {
         setSpeechData(result.data.speechData || []);
         setLanguage(result.data.language || 'ja');
         setLastSaveTime(result.data.lastSaveTime);
+        setSections(result.data.sections || [
+          { name: 'Start', startIndex: 0 },
+          { name: 'Normal', startIndex: 0 },
+          { name: 'Big', startIndex: 0 }
+        ]);
+        // Don't load sweetSpot from project data - load from settings instead
+      }
+    }
+  };
+
+  const loadSettings = async () => {
+    if (window.electronAPI) {
+      if (window.electronAPI.getSweetSpot) {
+        const sweetSpotValue = await window.electronAPI.getSweetSpot();
+        setSweetSpot(sweetSpotValue || 600);
+      }
+      if (window.electronAPI.getDelayRows) {
+        const delayRowsValue = await window.electronAPI.getDelayRows();
+        setDelayRows(delayRowsValue || 1);
       }
     }
   };
 
   const saveProject = async () => {
     if (window.electronAPI && window.electronAPI.saveProject) {
+      // Group pages by their group property
+      const groupedPages = {
+        Start: pages.filter(page => page.group === 'Start'),
+        Normal: pages.filter(page => page.group === 'Normal' || !page.group),
+        Big: pages.filter(page => page.group === 'Big')
+      };
+      
+      // Get pages in correct order (Start → Normal → Big)
+      const orderedPages = [...groupedPages.Start, ...groupedPages.Normal, ...groupedPages.Big];
+      
+      // Calculate section indices based on the ordered pages
+      const updatedSections = [
+        { name: 'Start', startIndex: 0 },
+        { name: 'Normal', startIndex: groupedPages.Start.length },
+        { name: 'Big', startIndex: groupedPages.Start.length + groupedPages.Normal.length }
+      ];
+      
       const projectData = {
-        pages,
+        pages: orderedPages,  // Save pages in the correct order
         speechData,
         language,
+        sections: updatedSections,
+        sweetSpot,
         lastSaveTime: new Date().toISOString(),
         version: '1.0.0'
       };
@@ -98,6 +158,7 @@ function App() {
       const result = await window.electronAPI.saveProject(projectData);
       if (result.success) {
         setLastSaveTime(projectData.lastSaveTime);
+        setSections(updatedSections);
       }
     }
   };
@@ -107,10 +168,30 @@ function App() {
     
     setIsExporting(true);
     try {
+      // Group pages by their group property
+      const groupedPages = {
+        Start: pages.filter(page => page.group === 'Start'),
+        Normal: pages.filter(page => page.group === 'Normal' || !page.group),
+        Big: pages.filter(page => page.group === 'Big')
+      };
+      
+      // Get pages in correct order (Start → Normal → Big)
+      const orderedPages = [...groupedPages.Start, ...groupedPages.Normal, ...groupedPages.Big];
+      
+      // Calculate section indices for export
+      const exportSections = [
+        { name: 'Start', startIndex: 0 },
+        { name: 'Normal', startIndex: groupedPages.Start.length },
+        { name: 'Big', startIndex: groupedPages.Start.length + groupedPages.Normal.length }
+      ];
+      
       const projectData = {
-        pages,
+        pages: orderedPages,  // Export pages in the correct order
         speechData,
         language,
+        sections: exportSections,
+        sweetSpot,
+        delayRows,
         title: 'manga-project', // You can make this customizable
         version: '1.0.0',
         compressToWebP: options.compressToWebP || false
@@ -170,6 +251,8 @@ function App() {
             speechData={speechData}
             language={language}
             onPagesUpdate={setPages}
+            sweetSpot={sweetSpot}
+            onSweetSpotChange={setSweetSpot}
           />
         );
       default:

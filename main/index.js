@@ -197,6 +197,7 @@ ipcMain.handle('open-export-folder', async () => {
 });
 
 ipcMain.handle('browse-for-folder', async () => {
+  const { preferencesWindow } = require('./preferences');
   const result = await dialog.showOpenDialog(preferencesWindow || mainWindow, {
     properties: ['openDirectory'],
     title: 'Select Export Folder',
@@ -208,4 +209,24 @@ ipcMain.handle('browse-for-folder', async () => {
   }
   
   return { success: false };
+});
+
+// IPC handlers for sweet spot
+ipcMain.handle('get-sweet-spot', async () => {
+  return await settingsManager.getSweetSpot();
+});
+
+ipcMain.handle('set-sweet-spot', async (event, value) => {
+  await settingsManager.setSweetSpot(value);
+  return { success: true };
+});
+
+// IPC handlers for delay rows
+ipcMain.handle('get-delay-rows', async () => {
+  return await settingsManager.getDelayRows();
+});
+
+ipcMain.handle('set-delay-rows', async (event, value) => {
+  await settingsManager.setDelayRows(value);
+  return { success: true };
 });
