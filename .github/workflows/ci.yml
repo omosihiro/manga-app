@@ -75,7 +75,7 @@ jobs:
     - name: Build macOS app
       run: |
         cd manga_viewer
-        flutter build macos --debug
+        flutter build macos --release
         
     - name: Install create-dmg
       run: |
@@ -93,10 +93,10 @@ jobs:
           --hide-extension "manga_viewer.app" \
           --app-drop-link 425 190 \
           "MangaViewer.dmg" \
-          "build/macos/Build/Products/Debug/"
+          "build/macos/Build/Products/Release/"
         
     - name: Upload DMG
       uses: actions/upload-artifact@v3
       with:
-        name: macos-dmg
+        name: MangaViewer-macOS
         path: manga_viewer/MangaViewer.dmg
