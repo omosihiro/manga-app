@@ -1,0 +1,29 @@
+name: manga_viewer
+description: A minimal manga viewer app that loads zip files
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # File picker for selecting zip files
+  file_picker: ^10.2.0
+  
+  # Archive library for extracting zip files
+  archive: ^4.0.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+  
+  # Test assets
+  assets:
+    - assets/test_1x1.webp

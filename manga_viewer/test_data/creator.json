@@ -1,0 +1,48 @@
+{
+  "title": "Sample Manga",
+  "pages": [
+    {
+      "id": "page1",
+      "name": "Page 1",
+      "filename": "page_1.png",
+      "speechId": "1",
+      "speechPos": { "x": 50, "y": 100 },
+      "speechStyle": {
+        "shape": "rounded",
+        "color": "white",
+        "borderColor": "black",
+        "size": "medium",
+        "animation": "fadeIn"
+      }
+    },
+    {
+      "id": "page2",
+      "name": "Page 2",
+      "filename": "page_2.png",
+      "speechId": "2",
+      "speechPos": { "x": 200, "y": 150 },
+      "speechStyle": {
+        "shape": "cloud",
+        "color": "yellow",
+        "borderColor": "black",
+        "size": "large",
+        "animation": "bounce"
+      }
+    }
+  ],
+  "speechData": [
+    {
+      "id": "1",
+      "ja": "こんにちは！",
+      "en": "Hello!"
+    },
+    {
+      "id": "2",
+      "ja": "元気ですか？",
+      "en": "How are you?"
+    }
+  ],
+  "language": "ja",
+  "version": "1.0.0",
+  "exportDate": "2024-01-01T00:00:00.000Z"
+}

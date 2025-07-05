@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import './PagesPanel.css';
 
-function PagesPanel({ pages, onPagesUpdate }) {
+function PagesPanel({ pages, onPagesUpdate, speechData }) {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -40,7 +40,15 @@ function PagesPanel({ pages, onPagesUpdate }) {
               id: Date.now() + Math.random(),
               name: file.name,
               url: e.target.result,
-              type: file.type
+              type: file.type,
+              speechPos: { x: 20, y: 20 },
+              speechStyle: {
+                shape: 'rounded',
+                color: 'white',
+                borderColor: 'black',
+                size: 'medium',
+                animation: 'fadeIn'
+              }
             });
           };
           reader.readAsDataURL(file);
@@ -53,6 +61,22 @@ function PagesPanel({ pages, onPagesUpdate }) {
 
   const removePage = (id) => {
     onPagesUpdate(pages.filter(page => page.id !== id));
+  };
+
+  const updatePageSpeechId = (pageId, speechId) => {
+    const updatedPages = pages.map(page => 
+      page.id === pageId ? { ...page, speechId } : page
+    );
+    onPagesUpdate(updatedPages);
+  };
+
+  const updatePageSpeechStyle = (pageId, styleKey, styleValue) => {
+    const updatedPages = pages.map(page => 
+      page.id === pageId 
+        ? { ...page, speechStyle: { ...page.speechStyle, [styleKey]: styleValue } }
+        : page
+    );
+    onPagesUpdate(updatedPages);
   };
 
   const movePageUp = (index) => {
@@ -99,6 +123,68 @@ function PagesPanel({ pages, onPagesUpdate }) {
             <div className="page-info">
               <span className="page-number">{index + 1}</span>
               <span className="page-name">{page.name}</span>
+            </div>
+            <div className="page-speech">
+              <select 
+                value={page.speechId || ''}
+                onChange={(e) => updatePageSpeechId(page.id, e.target.value)}
+                className="speech-select"
+              >
+                <option value="">なし</option>
+                {speechData && speechData.map(speech => (
+                  <option key={speech.id} value={speech.id}>
+                    {speech.id}
+                  </option>
+                ))}
+              </select>
+              
+              {page.speechId && (
+                <div className="speech-style-controls">
+                  <select
+                    value={page.speechStyle?.shape || 'rounded'}
+                    onChange={(e) => updatePageSpeechStyle(page.id, 'shape', e.target.value)}
+                    className="style-select"
+                    title="Shape"
+                  >
+                    <option value="rounded">Rounded</option>
+                    <option value="cloud">Cloud</option>
+                    <option value="sharp">Sharp</option>
+                    <option value="thought">Thought</option>
+                  </select>
+                  
+                  <select
+                    value={page.speechStyle?.size || 'medium'}
+                    onChange={(e) => updatePageSpeechStyle(page.id, 'size', e.target.value)}
+                    className="style-select"
+                    title="Size"
+                  >
+                    <option value="small">Small</option>
+                    <option value="medium">Medium</option>
+                    <option value="large">Large</option>
+                  </select>
+                  
+                  <input
+                    type="color"
+                    value={page.speechStyle?.color || '#ffffff'}
+                    onChange={(e) => updatePageSpeechStyle(page.id, 'color', e.target.value)}
+                    className="color-picker"
+                    title="Background color"
+                  />
+                  
+                  <select
+                    value={page.speechStyle?.animation || 'fadeIn'}
+                    onChange={(e) => updatePageSpeechStyle(page.id, 'animation', e.target.value)}
+                    className="style-select"
+                    title="Animation"
+                  >
+                    <option value="none">None</option>
+                    <option value="fadeIn">Fade In</option>
+                    <option value="slideIn">Slide In</option>
+                    <option value="bounce">Bounce</option>
+                    <option value="zoom">Zoom</option>
+                  </select>
+                </div>
+              )}
             </div>
             <div className="page-actions">
               <button 
