@@ -41,6 +41,7 @@ class SpeechBubble extends StatelessWidget {
     final size = style['size'] ?? 'medium';
     final bg = style['color'] ?? '#ffffff';
     final borderColor = style['borderColor'] ?? '#000000';
+    final tail = style['tail'] ?? 'left';
 
     // Define size properties
     final sizeConfig = {
@@ -133,10 +134,12 @@ class SpeechBubble extends StatelessWidget {
   }
 
   List<Widget> _getCloudTail(String bg, String borderColor) {
+    final isRight = style['tail'] == 'right';
     return [
       Positioned(
         bottom: -10,
-        left: 20,
+        left: isRight ? null : 20,
+        right: isRight ? 20 : null,
         child: Container(
           width: 20,
           height: 20,
@@ -149,7 +152,8 @@ class SpeechBubble extends StatelessWidget {
       ),
       Positioned(
         bottom: -15,
-        left: 10,
+        left: isRight ? null : 10,
+        right: isRight ? 10 : null,
         child: Container(
           width: 12,
           height: 12,
@@ -164,10 +168,12 @@ class SpeechBubble extends StatelessWidget {
   }
 
   List<Widget> _getThoughtTail(String bg, String borderColor) {
+    final isRight = style['tail'] == 'right';
     return [
       Positioned(
         bottom: -12,
-        left: 20,
+        left: isRight ? null : 20,
+        right: isRight ? 20 : null,
         child: Container(
           width: 16,
           height: 16,
@@ -180,7 +186,8 @@ class SpeechBubble extends StatelessWidget {
       ),
       Positioned(
         bottom: -20,
-        left: 15,
+        left: isRight ? null : 15,
+        right: isRight ? 15 : null,
         child: Container(
           width: 10,
           height: 10,
@@ -195,9 +202,11 @@ class SpeechBubble extends StatelessWidget {
   }
 
   Widget _getSharpTail(String bg, String borderColor) {
+    final isRight = style['tail'] == 'right';
     return Positioned(
       bottom: -10,
-      left: 20,
+      left: isRight ? null : 20,
+      right: isRight ? 20 : null,
       child: CustomPaint(
         size: const Size(20, 10),
         painter: TrianglePainter(

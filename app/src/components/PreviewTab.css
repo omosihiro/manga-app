@@ -210,6 +210,33 @@
   border-top-color: inherit;
 }
 
+/* Tail variations */
+.speech.tail-right.speech-sharp::after,
+.speech.tail-right.speech-rounded::after {
+  left: auto;
+  right: 20px;
+}
+
+.speech.tail-right.speech-cloud::before {
+  left: auto;
+  right: 20px;
+}
+
+.speech.tail-right.speech-cloud::after {
+  left: auto;
+  right: 10px;
+}
+
+.speech.tail-right.speech-thought::before {
+  left: auto;
+  right: 20px;
+}
+
+.speech.tail-right.speech-thought::after {
+  left: auto;
+  right: 15px;
+}
+
 .speech-thought {
   border-radius: 50% 40% 50% 40%;
   border-style: solid;
@@ -260,7 +287,7 @@
 }
 
 /* Speech Animations */
-@keyframes fadeIn {
+@keyframes fadeAnimation {
   from {
     opacity: 0;
   }
@@ -269,7 +296,7 @@
   }
 }
 
-@keyframes slideIn {
+@keyframes slideAnimation {
   from {
     opacity: 0;
     transform: translateY(-20px);
@@ -280,48 +307,26 @@
   }
 }
 
-@keyframes bounce {
-  0% {
-    opacity: 0;
-    transform: scale(0.3);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  70% {
-    transform: scale(0.9);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
+.speech.anim-fade {
+  animation: fadeAnimation 0.5s ease-out;
 }
 
-@keyframes zoom {
-  from {
-    opacity: 0;
-    transform: scale(0);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.speech.anim-slide {
+  animation: slideAnimation 0.4s ease-out;
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.5s ease-out;
-}
-
-.animate-slideIn {
-  animation: slideIn 0.4s ease-out;
-}
-
-.animate-bounce {
-  animation: bounce 0.6s ease-out;
-}
-
-.animate-zoom {
-  animation: zoom 0.3s ease-out;
+/* Add rounded bubble tail */
+.speech-rounded::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 20px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid;
+  border-top-color: inherit;
 }
 
 /* Speech Balloon Styles */

@@ -199,4 +199,29 @@ describe('PreviewScroll', () => {
     const sweetSpotInput = screen.getByLabelText('Sweet Spot:');
     expect(sweetSpotInput).toHaveValue(750);
   });
+
+  test('changes speech text after scrolling to sweetSpot*3', async () => {
+    const { container } = render(<PreviewTab {...defaultProps} />);
+    
+    const scrollContainer = container.querySelector('.preview-scroll-container');
+    expect(scrollContainer).toBeInTheDocument();
+    
+    // Initial state - row 0
+    expect(screen.getByText('こんにちは')).toBeInTheDocument();
+    expect(screen.getByText('ありがとう')).toBeInTheDocument();
+    
+    // Simulate scroll to sweetSpot*3 (1800px)
+    fireEvent.scroll(scrollContainer, { target: { scrollTop: 1800 } });
+    
+    // Wait for state update
+    await waitFor(() => {
+      // At row 3:
+      // speech1 has 3 rows, so row 3 % 3 = 0, should show 'こんにちは' again
+      expect(screen.getByText('こんにちは')).toBeInTheDocument();
+      
+      // speech2 has 2 rows, so row 3 % 2 = 1, should show 'さようなら'
+      expect(screen.queryByText('ありがとう')).not.toBeInTheDocument();
+      expect(screen.getByText('さようなら')).toBeInTheDocument();
+    });
+  });
 });

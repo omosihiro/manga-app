@@ -29,9 +29,11 @@ class _AnimatedSpeechBubbleState extends State<AnimatedSpeechBubble>
   }
 
   void _setupAnimation() {
-    final animationType = widget.style['animation'] ?? 'fadeIn';
+    // Use new 'anim' property, fallback to old 'animation' property
+    final animationType = widget.style['anim'] ?? widget.style['animation'] ?? 'fade';
     
     switch (animationType) {
+      case 'fade':
       case 'fadeIn':
         _controller = AnimationController(
           duration: const Duration(milliseconds: 500),
@@ -43,6 +45,7 @@ class _AnimatedSpeechBubbleState extends State<AnimatedSpeechBubble>
         );
         break;
         
+      case 'slide':
       case 'slideIn':
         _controller = AnimationController(
           duration: const Duration(milliseconds: 400),

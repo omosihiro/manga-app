@@ -71,7 +71,7 @@ async function exportProject(data, outputDir) {
         filename: `page_${index + 1}.${imageExtension}`,
         speechId: page.speechId || null,
         speechPos: page.speechPos || { x: 20, y: 20 },
-        speechStyle: page.speechStyle || { shape: 'rounded', color: 'white', borderColor: 'black', size: 'medium', animation: 'fadeIn' },
+        speechStyle: page.speechStyle || { shape: 'rounded', color: 'white', borderColor: 'black', size: 'medium', animation: 'fadeIn', tail: 'left', anim: 'fade' },
         // Remove base64 data from JSON
       })),
       speechData: data.speechData || [],

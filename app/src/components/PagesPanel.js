@@ -51,7 +51,9 @@ function PagesPanel({ pages, onPagesUpdate, speechData }) {
                 color: 'white',
                 borderColor: 'black',
                 size: 'medium',
-                animation: 'fadeIn'
+                animation: 'fadeIn',
+                tail: 'left',
+                anim: 'fade'
               }
             });
           };
@@ -178,29 +180,32 @@ function PagesPanel({ pages, onPagesUpdate, speechData }) {
         />
       </div>
 
-      <div className="pages-groups">
+      <div className="pages-accordion">
         {['Start', 'Normal', 'Big'].map(groupName => (
-          <div key={groupName} className="page-group">
-            <div 
-              className="group-header"
+          <div key={groupName} className="accordion-panel">
+            <button 
+              className="accordion-header"
               onClick={() => toggleGroup(groupName)}
+              aria-expanded={!collapsedGroups[groupName]}
+              aria-controls={`panel-${groupName}`}
             >
-              <span className="group-toggle">
+              <span className="accordion-toggle">
                 {collapsedGroups[groupName] ? '▶' : '▼'}
               </span>
-              <span className="group-name">{groupName}</span>
-              <span className="group-count">({groupedPages[groupName].length})</span>
-            </div>
+              <span className="accordion-title">{groupName}</span>
+              <span className="accordion-count">({groupedPages[groupName].length})</span>
+            </button>
             
             {!collapsedGroups[groupName] && (
               <div 
-                className={`group-content ${dragOverGroup === groupName && draggedPage?.group !== groupName ? 'drag-over' : ''}`}
+                id={`panel-${groupName}`}
+                className={`accordion-content ${dragOverGroup === groupName && draggedPage?.group !== groupName ? 'drag-over' : ''}`}
                 onDragOver={(e) => handlePageDragOver(e, groupName)}
                 onDragLeave={(e) => handlePageDragLeave(e, groupName)}
                 onDrop={(e) => handlePageDrop(e, groupName)}
               >
                 {groupedPages[groupName].length === 0 ? (
-                  <div className={`empty-group ${dragOverGroup === groupName && draggedPage ? 'drag-over' : ''}`}>
+                  <div className={`accordion-empty ${dragOverGroup === groupName && draggedPage ? 'drag-over' : ''}`}>
                     {dragOverGroup === groupName && draggedPage ? 'Drop page here' : 'Drop pages here'}
                   </div>
                 ) : (
@@ -267,16 +272,23 @@ function PagesPanel({ pages, onPagesUpdate, speechData }) {
                               />
                               
                               <select
-                                value={page.speechStyle?.animation || 'fadeIn'}
-                                onChange={(e) => updatePageSpeechStyle(page.id, 'animation', e.target.value)}
+                                value={page.speechStyle?.tail || 'left'}
+                                onChange={(e) => updatePageSpeechStyle(page.id, 'tail', e.target.value)}
                                 className="style-select"
-                                title="Animation"
+                                title="Tail direction"
                               >
-                                <option value="none">None</option>
-                                <option value="fadeIn">Fade In</option>
-                                <option value="slideIn">Slide In</option>
-                                <option value="bounce">Bounce</option>
-                                <option value="zoom">Zoom</option>
+                                <option value="left">Left</option>
+                                <option value="right">Right</option>
+                              </select>
+                              
+                              <select
+                                value={page.speechStyle?.anim || 'fade'}
+                                onChange={(e) => updatePageSpeechStyle(page.id, 'anim', e.target.value)}
+                                className="style-select"
+                                title="Animation type"
+                              >
+                                <option value="fade">Fade</option>
+                                <option value="slide">Slide</option>
                               </select>
                             </div>
                           )}

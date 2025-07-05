@@ -171,11 +171,20 @@ function PreviewTab({ pages, speechData, language, onPagesUpdate, sweetSpot, onS
                       const speechText = speech[currentLang] || speech.ja || speech.en || '';
                       if (speechText) {
                         const speechPos = page.speechPos || { x: 20, y: 20 };
-                        const speechStyle = page.speechStyle || { shape: 'rounded', color: 'white', borderColor: 'black', size: 'medium', animation: 'fadeIn' };
-                        const animationClass = speechStyle.animation !== 'none' ? `animate-${speechStyle.animation}` : '';
+                        const speechStyle = page.speechStyle || { 
+                          shape: 'rounded', 
+                          color: 'white', 
+                          borderColor: 'black', 
+                          size: 'medium', 
+                          animation: 'fadeIn',
+                          tail: 'left',
+                          anim: 'fade'
+                        };
+                        const animClass = `anim-${speechStyle.anim || 'fade'}`;
+                        const tailClass = `tail-${speechStyle.tail || 'left'}`;
                         return (
                           <div 
-                            className={`speech draggable speech-${speechStyle.shape} speech-${speechStyle.size} ${animationClass}`}
+                            className={`speech draggable speech-${speechStyle.shape} speech-${speechStyle.size} ${animClass} ${tailClass}`}
                             style={{
                               left: speechPos.x,
                               top: speechPos.y,
