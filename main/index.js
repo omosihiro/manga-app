@@ -230,3 +230,25 @@ ipcMain.handle('set-delay-rows', async (event, value) => {
   await settingsManager.setDelayRows(value);
   return { success: true };
 });
+
+// IPC handlers for sections
+ipcMain.handle('get-sections', async () => {
+  return await settingsManager.getSections();
+});
+
+ipcMain.handle('set-sections', async (event, sections) => {
+  await settingsManager.setSections(sections);
+  return { success: true };
+});
+
+// IPC handler for getting project data (for preferences window)
+ipcMain.handle('get-project-data', async () => {
+  // Read the last saved project
+  try {
+    const projectPath = path.join(app.getPath('userData'), 'manga-project.json');
+    const data = await fs.readFile(projectPath, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    return null;
+  }
+});

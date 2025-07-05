@@ -47,6 +47,8 @@ class _MangaViewerState extends State<MangaViewer> {
   int _delayRows = 0; // Number of rows to delay per page index
   List<Map<String, dynamic>> _sections = [];
   double _itemHeight = 0; // Will be calculated based on screen
+  final List<double> _pageHeights = []; // Store actual page heights
+  final List<double> _cumulativeHeights = []; // Store cumulative heights for pixel calculations
 
   Future<void> _pickAndLoadZip() async {
     setState(() {
@@ -108,10 +110,28 @@ class _MangaViewerState extends State<MangaViewer> {
           _delayRows = _creatorData?['delayRows'] ?? 0;
           // Get sections from creator data
           _sections = List<Map<String, dynamic>>.from(_creatorData?['sections'] ?? [
-            {'name': 'Start', 'startIndex': 0},
-            {'name': 'Normal', 'startIndex': 0},
-            {'name': 'Big', 'startIndex': 0}
+            {'name': 'Start', 'startIndex': 0, 'sweetSpot': 600},
+            {'name': 'Normal', 'startIndex': 0, 'sweetSpot': 600},
+            {'name': 'Big', 'startIndex': 0, 'sweetSpot': 600}
           ]);
+          // Initialize page heights will be done after build
+          _pageHeights.clear();
+          _cumulativeHeights.clear();
+        });
+        
+        // Initialize heights after build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            final screenWidth = MediaQuery.of(context).size.width;
+            final estimatedHeight = screenWidth / 0.7 + 16; // padding
+            double cumulative = 0;
+            for (int i = 0; i < pages.length; i++) {
+              _pageHeights.add(estimatedHeight);
+              cumulative += estimatedHeight;
+              _cumulativeHeights.add(cumulative);
+            }
+            _calculateSectionPixelStarts();
+          }
         });
       } else {
         setState(() {
@@ -133,6 +153,41 @@ class _MangaViewerState extends State<MangaViewer> {
     return pages[index] as Map<String, dynamic>;
   }
 
+  // Calculate pixel start positions for each section
+  void _calculateSectionPixelStarts() {
+    if (_sections.isEmpty || _cumulativeHeights.isEmpty) return;
+    
+    for (int i = 0; i < _sections.length; i++) {
+      final startIndex = _sections[i]['startIndex'] as int;
+      _sections[i]['pixelStart'] = startIndex > 0 && startIndex < _cumulativeHeights.length 
+          ? _cumulativeHeights[startIndex - 1] 
+          : 0.0;
+    }
+  }
+
+  // Find current section using binary search
+  Map<String, dynamic>? _findCurrentSection(double scrollOffset) {
+    if (_sections.isEmpty) return null;
+    
+    int left = 0;
+    int right = _sections.length - 1;
+    Map<String, dynamic>? currentSection;
+    
+    while (left <= right) {
+      int mid = (left + right) ~/ 2;
+      double sectionPixelStart = _sections[mid]['pixelStart'] ?? 0.0;
+      
+      if (sectionPixelStart <= scrollOffset) {
+        currentSection = _sections[mid];
+        left = mid + 1;
+      } else {
+        right = mid - 1;
+      }
+    }
+    
+    return currentSection;
+  }
+
   Map<String, dynamic>? _getSpeechForPage(Map<String, dynamic>? pageData, int pageIndex) {
     if (pageData == null || pageData['speechId'] == null) return null;
     if (_creatorData == null || _creatorData!['speechData'] == null) return null;
@@ -148,9 +203,22 @@ class _MangaViewerState extends State<MangaViewer> {
       
       if (matchingSpeech.isEmpty) return null;
       
-      // Calculate effective row for this page
-      // effectiveRow = max(0, _currentRow - pageIndex * _delayRows)
-      final effectiveRow = (_currentRow - pageIndex * _delayRows).clamp(0, double.infinity).toInt();
+      // Find which section this page belongs to
+      Map<String, dynamic>? pageSection;
+      int sectionPageIndex = pageIndex;
+      
+      for (int i = _sections.length - 1; i >= 0; i--) {
+        final sectionStartIndex = _sections[i]['startIndex'] as int;
+        if (pageIndex >= sectionStartIndex) {
+          pageSection = _sections[i];
+          sectionPageIndex = pageIndex - sectionStartIndex;
+          break;
+        }
+      }
+      
+      // Calculate effective row for this page within its section
+      // effectiveRow = max(0, _currentRow - sectionPageIndex * _delayRows)
+      final effectiveRow = (_currentRow - sectionPageIndex * _delayRows).clamp(0, double.infinity).toInt();
       
       // Return the speech at effective row index (cycling if necessary)
       return matchingSpeech[effectiveRow % matchingSpeech.length] as Map<String, dynamic>;
@@ -163,9 +231,18 @@ class _MangaViewerState extends State<MangaViewer> {
   void initState() {
     super.initState();
     _scrollController.addListener(() {
-      final idx = (_scrollController.offset / _sweetSpot).floor();
-      if (idx != _currentRow) {
-        setState(() => _currentRow = idx);
+      final scrollOffset = _scrollController.offset;
+      final currentSection = _findCurrentSection(scrollOffset);
+      
+      if (currentSection != null) {
+        final sectionPixelStart = currentSection['pixelStart'] ?? 0.0;
+        final sectionSweetSpot = (currentSection['sweetSpot'] ?? _sweetSpot).toDouble();
+        final localOffset = scrollOffset - sectionPixelStart;
+        final row = (localOffset / sectionSweetSpot).floor();
+        
+        if (row != _currentRow) {
+          setState(() => _currentRow = row);
+        }
       }
     });
   }
@@ -178,20 +255,22 @@ class _MangaViewerState extends State<MangaViewer> {
 
   void _scrollToSection(int sectionIndex) {
     if (sectionIndex >= 0 && sectionIndex < _sections.length) {
-      final startIndex = _sections[sectionIndex]['startIndex'] as int;
-      if (startIndex < _pages.length) {
-        // Calculate approximate item height based on screen width
-        final screenWidth = MediaQuery.of(context).size.width;
-        final imageAspectRatio = 0.7; // Typical manga page ratio
-        final estimatedHeight = screenWidth / imageAspectRatio + 100; // Add padding
-        
-        _scrollController.animateTo(
-          startIndex * estimatedHeight,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-      }
+      final pixelStart = _sections[sectionIndex]['pixelStart'] ?? 0.0;
+      
+      _scrollController.animateTo(
+        pixelStart,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
     }
+  }
+
+  String _buildStatusText() {
+    final currentSection = _findCurrentSection(_scrollController.hasClients ? _scrollController.offset : 0);
+    final sectionName = currentSection?['name'] ?? 'Unknown';
+    final sectionSweetSpot = (currentSection?['sweetSpot'] ?? _sweetSpot).toInt();
+    
+    return '${_pages.length} pages | Section: $sectionName | Sweet: ${sectionSweetSpot}px | Row: $_currentRow | Delay: $_delayRows';
   }
 
   @override
@@ -351,7 +430,7 @@ class _MangaViewerState extends State<MangaViewer> {
                 ),
                 const Spacer(),
                 Text(
-                  '${_pages.length} pages | Sweet: ${_sweetSpot.toInt()}px | Row: $_currentRow | Delay: $_delayRows',
+                  _buildStatusText(),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],

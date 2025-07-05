@@ -123,6 +123,15 @@ function App() {
         const delayRowsValue = await window.electronAPI.getDelayRows();
         setDelayRows(delayRowsValue || 1);
       }
+      if (window.electronAPI.getSections) {
+        const sectionsData = await window.electronAPI.getSections();
+        if (sectionsData && sectionsData.length > 0) {
+          setSections(sectionsData.map((section, index) => ({
+            ...section,
+            startIndex: sections[index]?.startIndex || 0
+          })));
+        }
+      }
     }
   };
 
@@ -138,12 +147,14 @@ function App() {
       // Get pages in correct order (Start → Normal → Big)
       const orderedPages = [...groupedPages.Start, ...groupedPages.Normal, ...groupedPages.Big];
       
-      // Calculate section indices based on the ordered pages
-      const updatedSections = [
-        { name: 'Start', startIndex: 0 },
-        { name: 'Normal', startIndex: groupedPages.Start.length },
-        { name: 'Big', startIndex: groupedPages.Start.length + groupedPages.Normal.length }
-      ];
+      // Calculate section indices based on the ordered pages with sweetSpot from sections state
+      const updatedSections = sections.map((section, index) => ({
+        name: section.name,
+        startIndex: index === 0 ? 0 : 
+                   index === 1 ? groupedPages.Start.length :
+                   groupedPages.Start.length + groupedPages.Normal.length,
+        sweetSpot: section.sweetSpot || sweetSpot
+      }));
       
       const projectData = {
         pages: orderedPages,  // Save pages in the correct order
@@ -178,12 +189,14 @@ function App() {
       // Get pages in correct order (Start → Normal → Big)
       const orderedPages = [...groupedPages.Start, ...groupedPages.Normal, ...groupedPages.Big];
       
-      // Calculate section indices for export
-      const exportSections = [
-        { name: 'Start', startIndex: 0 },
-        { name: 'Normal', startIndex: groupedPages.Start.length },
-        { name: 'Big', startIndex: groupedPages.Start.length + groupedPages.Normal.length }
-      ];
+      // Calculate section indices for export with sweetSpot from sections state
+      const exportSections = sections.map((section, index) => ({
+        name: section.name,
+        startIndex: index === 0 ? 0 : 
+                   index === 1 ? groupedPages.Start.length :
+                   groupedPages.Start.length + groupedPages.Normal.length,
+        sweetSpot: section.sweetSpot || sweetSpot
+      }));
       
       const projectData = {
         pages: orderedPages,  // Export pages in the correct order

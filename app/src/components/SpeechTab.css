@@ -4,6 +4,7 @@
   flex-direction: column;
   padding: 20px;
   overflow: hidden;
+  background-color: var(--main-bg);
 }
 
 .speech-header {
@@ -15,7 +16,7 @@
 
 .speech-header h2 {
   margin: 0;
-  color: #fff;
+  color: #333;
 }
 
 .language-selector {
@@ -25,7 +26,7 @@
 }
 
 .language-selector label {
-  color: #ddd;
+  color: #666;
   font-size: 14px;
 }
 
@@ -87,13 +88,78 @@
   overflow: hidden;
 }
 
+.table-controls {
+  margin-bottom: 15px;
+}
+
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-input {
+  flex: 1;
+  max-width: 400px;
+  padding: 8px 36px 8px 12px;
+  background-color: #1e1e1e;
+  color: #ddd;
+  border: 1px solid #444;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #0066cc;
+  background-color: #252525;
+}
+
+.search-input::placeholder {
+  color: #666;
+}
+
+.search-clear {
+  position: absolute;
+  right: auto;
+  left: 364px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background-color: transparent;
+  color: #888;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.search-clear:hover {
+  background-color: #444;
+  color: #ddd;
+}
+
+.search-results {
+  font-size: 13px;
+  color: #888;
+  white-space: nowrap;
+}
+
 .table-actions {
   display: flex;
   gap: 10px;
   margin-bottom: 15px;
 }
 
-.add-row-btn, .upload-new-btn {
+.add-row-btn, .upload-new-btn, .export-btn {
   padding: 8px 16px;
   background-color: #0066cc;
   color: white;
@@ -104,16 +170,24 @@
   transition: background-color 0.2s ease;
 }
 
-.add-row-btn:hover, .upload-new-btn:hover {
+.add-row-btn:hover {
   background-color: #0052a3;
 }
 
-.upload-new-btn {
+.upload-new-btn, .export-btn {
   background-color: #444;
 }
 
-.upload-new-btn:hover {
+.upload-new-btn:hover, .export-btn:hover {
   background-color: #555;
+}
+
+.export-btn {
+  background-color: #22aa44;
+}
+
+.export-btn:hover {
+  background-color: #1e9038;
 }
 
 .speech-table {
@@ -141,6 +215,11 @@
 
 .speech-table th:last-child {
   width: 80px;
+  text-align: center;
+}
+
+.speech-table th:nth-last-child(2) {
+  width: 120px;
   text-align: center;
 }
 
@@ -180,14 +259,27 @@
 .cell-textarea {
   width: 100%;
   padding: 6px 8px;
+  padding-bottom: 20px; /* Extra space for character counter */
   background-color: #1e1e1e;
   color: #ddd;
   border: 1px solid #444;
   border-radius: 4px;
   font-size: 14px;
-  resize: vertical;
-  min-height: 40px;
+  resize: none;
+  min-height: 32px;
   font-family: inherit;
+  line-height: 1.4;
+  overflow: hidden;
+  transition: height 0.1s ease;
+}
+
+.cell-textarea.auto-grow {
+  overflow-y: hidden;
+}
+
+.cell-textarea::placeholder {
+  color: #666;
+  font-size: 12px;
 }
 
 .cell-input:focus, .cell-textarea:focus {
@@ -233,4 +325,194 @@
 
 .speech-table tbody::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* Selection toolbar */
+.selection-toolbar {
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.selection-count {
+  font-size: 14px;
+  color: #ddd;
+  font-weight: 500;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.toolbar-btn {
+  padding: 6px 12px;
+  background-color: #444;
+  color: #ddd;
+  border: 1px solid #555;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.toolbar-btn:hover {
+  background-color: #555;
+  border-color: #666;
+}
+
+.toolbar-btn:active {
+  transform: translateY(1px);
+}
+
+.toolbar-btn.delete-btn {
+  background-color: #cc3333;
+  border-color: #dd4444;
+}
+
+.toolbar-btn.delete-btn:hover {
+  background-color: #dd4444;
+  border-color: #ee5555;
+}
+
+/* Selected row styles */
+.speech-table tr {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.speech-table tbody tr:hover {
+  background-color: #333;
+}
+
+.speech-table tbody tr.selected {
+  background-color: #2a3a4a;
+  border-color: #0066cc;
+}
+
+.speech-table tbody tr.selected td {
+  border-bottom-color: #0066cc;
+}
+
+.speech-table tbody tr.selected:hover {
+  background-color: #2a3a4a;
+}
+
+/* Missing translation styles */
+.speech-table tbody tr.missing-trans {
+  background-color: #3d2828;
+}
+
+.speech-table tbody tr.missing-trans:hover {
+  background-color: #4a3030;
+}
+
+.speech-table tbody tr.missing-trans.selected {
+  background-color: #523838;
+  border-color: #ff6666;
+}
+
+.speech-table tbody tr.missing-trans.selected td {
+  border-bottom-color: #cc4444;
+}
+
+.id-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.translation-badge {
+  background-color: #ff4444;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-block;
+  margin: 0 2px;
+}
+
+.translation-badge.missing-ja {
+  background-color: #ff8800;
+}
+
+.translation-badge.missing-en {
+  background-color: #ff4444;
+}
+
+.style-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Textarea cell container */
+.textarea-cell {
+  position: relative;
+  width: 100%;
+}
+
+/* Character counter */
+.char-counter {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.char-counter.over-limit {
+  background-color: #ff4444;
+  color: white;
+  opacity: 0.9;
+}
+
+/* Search highlighting */
+.search-highlight {
+  background-color: #ffeb3b;
+  color: #000;
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 600;
+  display: inline;
+}
+
+.cell-display {
+  padding: 6px 8px;
+  font-size: 14px;
+  color: #ddd;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.textarea-highlight-container {
+  padding: 6px 8px;
+  padding-bottom: 20px;
+  background-color: #1e1e1e;
+  border: 1px solid #444;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1.4;
+  min-height: 32px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.textarea-highlight-text {
+  color: #ddd;
 }

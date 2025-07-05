@@ -403,35 +403,34 @@ function PagesPanel({ pages, onPagesUpdate, speechData }) {
         />
       </div>
 
-      <div className="pages-accordion">
+      <div className="pages-sections">
         {['Start', 'Normal', 'Big'].map(groupName => (
-          <div key={groupName} className="accordion-panel">
-            <button 
-              className="accordion-header"
-              onClick={() => toggleGroup(groupName)}
-              aria-expanded={!collapsedGroups[groupName]}
-              aria-controls={`panel-${groupName}`}
+          <details key={groupName} className="section" open={!collapsedGroups[groupName]}>
+            <summary 
+              className="section-header"
+              onClick={(e) => {
+                e.preventDefault();
+                toggleGroup(groupName);
+              }}
             >
-              <span className="accordion-toggle">
+              <span className="section-toggle">
                 {collapsedGroups[groupName] ? '▶' : '▼'}
               </span>
-              <span className="accordion-title">{groupName}</span>
-              <span className="accordion-count">({groupedPages[groupName].length})</span>
-            </button>
+              <span className="section-title">{groupName}</span>
+              <span className="section-count">({groupedPages[groupName].length})</span>
+            </summary>
             
-            {!collapsedGroups[groupName] && (
-              <div 
-                id={`panel-${groupName}`}
-                className={`accordion-content ${dragOverGroup === groupName && draggedPage?.group !== groupName ? 'drag-over' : ''}`}
-                onDragOver={(e) => handlePageDragOver(e, groupName)}
-                onDragLeave={(e) => handlePageDragLeave(e, groupName)}
-                onDrop={(e) => handlePageDrop(e, groupName)}
-              >
-                {groupedPages[groupName].length === 0 ? (
-                  <div className={`accordion-empty ${dragOverGroup === groupName && draggedPage ? 'drag-over' : ''}`}>
-                    {dragOverGroup === groupName && draggedPage ? 'Drop page here' : 'Drop pages here'}
-                  </div>
-                ) : (
+            <div 
+              className={`section-content ${dragOverGroup === groupName && draggedPage?.group !== groupName ? 'drag-over' : ''}`}
+              onDragOver={(e) => handlePageDragOver(e, groupName)}
+              onDragLeave={(e) => handlePageDragLeave(e, groupName)}
+              onDrop={(e) => handlePageDrop(e, groupName)}
+            >
+              {groupedPages[groupName].length === 0 ? (
+                <div className={`section-empty ${dragOverGroup === groupName && draggedPage ? 'drag-over' : ''}`}>
+                  {dragOverGroup === groupName && draggedPage ? 'Drop page here' : 'Drop pages here'}
+                </div>
+              ) : (
                   groupedPages[groupName].map((page, indexInGroup) => {
                     const globalIndex = getPagesInOrder().findIndex(p => p.id === page.id);
                     return (
@@ -443,7 +442,9 @@ function PagesPanel({ pages, onPagesUpdate, speechData }) {
                         onDragStart={(e) => handlePageDragStart(e, page)}
                         onDragEnd={handlePageDragEnd}
                       >
-                        <img src={page.url} alt={page.name} />
+                        <div className="page-card">
+                          <img src={page.url} alt={page.name} />
+                        </div>
                         <div className="page-info">
                           <span className="page-number">{globalIndex + 1}</span>
                           <span className="page-name">{page.name}</span>
@@ -575,10 +576,9 @@ function PagesPanel({ pages, onPagesUpdate, speechData }) {
                       </div>
                     );
                   })
-                )}
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          </details>
         ))}
       </div>
     </div>

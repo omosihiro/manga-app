@@ -1,6 +1,6 @@
 .sidebar {
   width: 200px;
-  background-color: #1e1e1e;
+  background-color: var(--sidebar-bg);
   height: 100vh;
   border-right: 1px solid #333;
 }
@@ -15,23 +15,31 @@
 .tab-button {
   padding: 10px 20px;
   background-color: transparent;
-  color: #ccc;
+  color: #bbb;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   text-align: left;
   font-size: 14px;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
 }
 
 .tab-button:hover {
   background-color: #2a2a2a;
-  color: #fff;
+  color: #ddd;
 }
 
 .tab-button.active {
   background-color: #0066cc;
   color: #fff;
+}
+
+.tab-button svg {
+  flex-shrink: 0;
 }
 
 .tab-button.active:hover {

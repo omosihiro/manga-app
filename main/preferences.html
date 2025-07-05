@@ -149,35 +149,146 @@
       color: #888;
       margin-top: 4px;
     }
+
+    /* Tab styles */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid #333;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      background-color: transparent;
+      color: #888;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .tab:hover {
+      color: #aaa;
+    }
+
+    .tab.active {
+      color: #ddd;
+      border-bottom-color: #0066cc;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .section-row {
+      background-color: #2a2a2a;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .section-name {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 12px;
+      color: #ddd;
+    }
+
+    .auto-fit-button {
+      padding: 6px 12px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+
+    .auto-fit-button:hover {
+      background-color: #0077ee;
+    }
+
+    .auto-fit-button:active {
+      transform: translateY(1px);
+    }
   </style>
 </head>
 <body>
   <h1>Preferences</h1>
   
-  <div class="preference-section">
-    <div class="preference-label">Export Folder</div>
-    <div class="path-input-group">
-      <input type="text" class="path-input" id="exportPath" readonly>
-      <button class="browse-button" id="browseButton">Browse…</button>
+  <div class="tabs">
+    <button class="tab active" data-tab="general">General</button>
+    <button class="tab" data-tab="sections">Sections</button>
+  </div>
+
+  <div id="general" class="tab-content active">
+    <div class="preference-section">
+      <div class="preference-label">Export Folder</div>
+      <div class="path-input-group">
+        <input type="text" class="path-input" id="exportPath" readonly>
+        <button class="browse-button" id="browseButton">Browse…</button>
+      </div>
+    </div>
+
+    <div class="preference-section">
+      <div class="preference-label">Sweet Spot (px)</div>
+      <div class="slider-group">
+        <input type="range" class="slider" id="sweetSpotSlider" min="200" max="1000" value="600" step="50">
+        <span class="slider-value" id="sweetSpotValue">600</span>
+      </div>
+      <div class="slider-hint">Default distance after which next speech row appears</div>
+    </div>
+
+    <div class="preference-section">
+      <div class="preference-label">Delay Rows</div>
+      <div class="slider-group">
+        <input type="range" class="slider" id="delayRowsSlider" min="0" max="5" value="1" step="1">
+        <span class="slider-value" id="delayRowsValue">1</span>
+      </div>
+      <div class="slider-hint">Speech row delay per page (0 = no delay)</div>
     </div>
   </div>
 
-  <div class="preference-section">
-    <div class="preference-label">Sweet Spot (px)</div>
-    <div class="slider-group">
-      <input type="range" class="slider" id="sweetSpotSlider" min="200" max="1000" value="600" step="50">
-      <span class="slider-value" id="sweetSpotValue">600</span>
-    </div>
-    <div class="slider-hint">Distance after which next speech row appears</div>
-  </div>
+  <div id="sections" class="tab-content">
+    <div class="preference-section">
+      <div class="preference-label" style="display: flex; align-items: center; justify-content: space-between;">
+        <span>Section Sweet Spots</span>
+        <button class="auto-fit-button" id="autoFitButton">Auto-fit sweetSpot</button>
+      </div>
+      <div class="slider-hint" style="margin-bottom: 16px;">Customize scroll distance for each section</div>
+      
+      <div class="section-row">
+        <div class="section-name">Start</div>
+        <div class="slider-group">
+          <input type="range" class="slider" id="startSweetSpot" min="200" max="1000" value="600" step="50">
+          <span class="slider-value" id="startSweetSpotValue">600</span>
+        </div>
+      </div>
 
-  <div class="preference-section">
-    <div class="preference-label">Delay Rows</div>
-    <div class="slider-group">
-      <input type="range" class="slider" id="delayRowsSlider" min="0" max="5" value="1" step="1">
-      <span class="slider-value" id="delayRowsValue">1</span>
+      <div class="section-row">
+        <div class="section-name">Normal</div>
+        <div class="slider-group">
+          <input type="range" class="slider" id="normalSweetSpot" min="200" max="1000" value="600" step="50">
+          <span class="slider-value" id="normalSweetSpotValue">600</span>
+        </div>
+      </div>
+
+      <div class="section-row">
+        <div class="section-name">Big</div>
+        <div class="slider-group">
+          <input type="range" class="slider" id="bigSweetSpot" min="200" max="1000" value="600" step="50">
+          <span class="slider-value" id="bigSweetSpotValue">600</span>
+        </div>
+      </div>
     </div>
-    <div class="slider-hint">Speech row delay per page (0 = no delay)</div>
   </div>
 
   <div class="actions">

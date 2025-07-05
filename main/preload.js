@@ -20,6 +20,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setSweetSpot: (value) => ipcRenderer.invoke('set-sweet-spot', value),
   getDelayRows: () => ipcRenderer.invoke('get-delay-rows'),
   setDelayRows: (value) => ipcRenderer.invoke('set-delay-rows', value),
+  getSections: () => ipcRenderer.invoke('get-sections'),
+  setSections: (sections) => ipcRenderer.invoke('set-sections', sections),
   // Preferences window APIs
   getPreferencesSettings: () => ipcRenderer.invoke('preferences:getSettings'),
   selectPreferencesFolder: () => ipcRenderer.invoke('preferences:selectFolder'),

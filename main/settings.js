@@ -9,7 +9,12 @@ class SettingsManager {
     this.defaultSettings = {
       exportPath: path.join(os.homedir(), 'Documents', 'MangaExports'),
       sweetSpot: 600,
-      delayRows: 1
+      delayRows: 1,
+      sections: [
+        { name: 'Start', sweetSpot: 600 },
+        { name: 'Normal', sweetSpot: 600 },
+        { name: 'Big', sweetSpot: 600 }
+      ]
     };
     this.settings = null;
   }
@@ -87,6 +92,21 @@ class SettingsManager {
       await this.loadSettings();
     }
     this.settings.delayRows = value;
+    await this.saveSettings();
+  }
+
+  async getSections() {
+    if (!this.settings) {
+      await this.loadSettings();
+    }
+    return this.settings.sections || this.defaultSettings.sections;
+  }
+
+  async setSections(sections) {
+    if (!this.settings) {
+      await this.loadSettings();
+    }
+    this.settings.sections = sections;
     await this.saveSettings();
   }
 }
