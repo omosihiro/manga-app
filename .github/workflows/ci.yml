@@ -1,8 +1,8 @@
-name: CI/CD Multi-Platform
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
     branches: [ main ]
 
@@ -72,14 +72,31 @@ jobs:
         cd manga_viewer
         flutter pub get
         
-    - name: Build macOS
+    - name: Build macOS app
       run: |
         cd manga_viewer
         flutter build macos --debug
         
-    - name: Upload macOS build
+    - name: Install create-dmg
+      run: |
+        brew install create-dmg
+        
+    - name: Create DMG
+      run: |
+        cd manga_viewer
+        create-dmg \
+          --volname "Manga Viewer" \
+          --window-pos 200 120 \
+          --window-size 600 400 \
+          --icon-size 100 \
+          --icon "manga_viewer.app" 175 190 \
+          --hide-extension "manga_viewer.app" \
+          --app-drop-link 425 190 \
+          "MangaViewer.dmg" \
+          "build/macos/Build/Products/Debug/"
+        
+    - name: Upload DMG
       uses: actions/upload-artifact@v3
       with:
-        name: macos-build
-        path: manga_viewer/build/macos/Build/Products/Debug/manga_viewer.app
-EOF < /dev/null
+        name: macos-dmg
+        path: manga_viewer/MangaViewer.dmg
