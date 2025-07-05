@@ -1,6 +1,7 @@
 :root {
   --sidebar-bg: #1E1E1E;
   --main-bg: #FAFAFA;
+  --sidebar-hover: #2A3A4D66;
 }
 
 .App {

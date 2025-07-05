@@ -7,12 +7,15 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const [findText, setFindText] = useState('');
   const [replaceText, setReplaceText] = useState('');
   const [validationErrors, setValidationErrors] = useState([]);
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [pendingImportData, setPendingImportData] = useState(null);
   const [autoTranslatedRows, setAutoTranslatedRows] = useState(new Set());
+  const searchInputRef = useRef(null);
+  const tableRef = useRef(null);
 
   const parseCSV = (text) => {
     const rows = [];
@@ -459,23 +462,39 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
         const allIndices = new Set(speechData.map((_, i) => i));
         setSelectedRows(allIndices);
       }
-      // Deselect All (Escape)
-      else if (e.key === 'Escape') {
-        setSelectedRows(new Set());
+      // Duplicate selected (Cmd/Ctrl + D)
+      else if ((e.metaKey || e.ctrlKey) && e.key === 'd' && !e.shiftKey && selectedRows.size > 0) {
+        // Only if not typing in an input
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          duplicateSelectedRows();
+        }
       }
-      // Delete selected (Delete or Backspace)
-      else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedRows.size > 0) {
+      // Delete selected (Cmd/Ctrl + Backspace)
+      else if ((e.metaKey || e.ctrlKey) && e.key === 'Backspace' && selectedRows.size > 0) {
         // Only if not typing in an input
         if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
           e.preventDefault();
           deleteSelectedRows();
         }
       }
+      // Delete selected (Delete or Backspace without modifier)
+      else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedRows.size > 0 && !e.metaKey && !e.ctrlKey) {
+        // Only if not typing in an input
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          deleteSelectedRows();
+        }
+      }
+      // Deselect All (Escape)
+      else if (e.key === 'Escape') {
+        setSelectedRows(new Set());
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [speechData, selectedRows, deleteSelectedRows]);
+  }, [speechData, selectedRows, deleteSelectedRows, duplicateSelectedRows]);
 
   // Get color class for character count
   const getCharCountClass = (length) => {
@@ -546,8 +565,43 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
     if (searchQuery) {
       // Clear selection when searching to avoid confusion
       setSelectedRows(new Set());
+      setCurrentSearchIndex(0);
     }
   }, [searchQuery]);
+
+  // Handle search navigation
+  const handleSearchNavigation = useCallback(() => {
+    if (!searchQuery || filteredData.length === 0) return;
+
+    // Move to next search result
+    const nextIndex = (currentSearchIndex + 1) % filteredData.length;
+    setCurrentSearchIndex(nextIndex);
+
+    // Scroll to the result
+    const rows = document.querySelectorAll('.speech-table tbody tr');
+    if (rows[nextIndex]) {
+      rows[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Briefly highlight the row
+      rows[nextIndex].classList.add('search-highlight-row');
+      setTimeout(() => {
+        rows[nextIndex].classList.remove('search-highlight-row');
+      }, 500);
+    }
+  }, [searchQuery, filteredData.length, currentSearchIndex]);
+
+  // Handle search input keydown
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearchNavigation();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setSearchQuery('');
+      setCurrentSearchIndex(0);
+      searchInputRef.current?.blur();
+    }
+  };
 
   // Replace All function
   const handleReplaceAll = useCallback(() => {
@@ -634,14 +688,14 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
                 <button 
                   className="toolbar-btn"
                   onClick={duplicateSelectedRows}
-                  title="Duplicate selected rows"
+                  title="Duplicate selected rows (⌘D)"
                 >
                   ⎘ Duplicate
                 </button>
                 <button 
                   className="toolbar-btn delete-btn"
                   onClick={deleteSelectedRows}
-                  title="Delete selected rows"
+                  title="Delete selected rows (⌘⌫)"
                 >
                   🗑 Delete
                 </button>
@@ -679,16 +733,21 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
           <div className="table-controls">
             <div className="search-container">
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Search by ID, Japanese, or English..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
                 className="search-input"
               />
               {searchQuery && (
                 <button 
                   className="search-clear"
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => {
+                    setSearchQuery('');
+                    setCurrentSearchIndex(0);
+                  }}
                   title="Clear search"
                 >
                   ×
@@ -696,7 +755,7 @@ function SpeechTab({ speechData, onSpeechDataUpdate, language, onLanguageChange 
               )}
               {searchQuery && (
                 <span className="search-results">
-                  {filteredData.length} / {speechData.length} results
+                  {filteredData.length > 0 ? `${currentSearchIndex + 1} / ${filteredData.length}` : '0 / 0'} results
                 </span>
               )}
             </div>

@@ -15,6 +15,7 @@
   background: #fff;
   transition: all 0.2s ease;
   position: relative;
+  margin: 12px 0;
 }
 
 .page-item:hover .page-card {
@@ -124,7 +125,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 24px;
   padding: 4px;
 }
 
@@ -163,6 +164,8 @@
   text-align: left;
   list-style: none;
   border-radius: 8px;
+  color: #666;
+  font-weight: 500;
 }
 
 .section[open] .section-header {

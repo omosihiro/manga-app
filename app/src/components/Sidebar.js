@@ -1,5 +1,5 @@
 import React from 'react';
-import { MdImage, MdChatBubble, MdPreview, MdSettings } from 'react-icons/md';
+import { MdImage, MdChatBubble, MdPreview } from 'react-icons/md';
 import './Sidebar.css';
 
 function Sidebar({ activeTab, onTabChange }) {

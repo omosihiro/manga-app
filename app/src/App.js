@@ -13,7 +13,6 @@ function App() {
   // Use undo/redo for pages
   const [pagesState, {
     set: setPages,
-    reset: resetPages,
     undo: undoPages,
     redo: redoPages,
     canUndo: canUndoPages,
@@ -24,7 +23,6 @@ function App() {
   // Use undo/redo for speech data
   const [speechState, {
     set: setSpeechData,
-    reset: resetSpeechData,
     undo: undoSpeechData,
     redo: redoSpeechData,
     canUndo: canUndoSpeechData,
@@ -48,7 +46,7 @@ function App() {
   useEffect(() => {
     loadProject();
     loadSettings();
-  }, []);
+  }, [loadProject, loadSettings]);
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
@@ -79,7 +77,7 @@ function App() {
     if (pages.length > 0 || speechData.length > 0) {
       saveProject();
     }
-  }, [pages, speechData, language]);
+  }, [pages, speechData, language, saveProject]);
 
   // Save sweet spot to settings when it changes
   useEffect(() => {

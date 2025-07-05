@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   padding: 20px;
-  overflow: hidden;
+  overflow-y: auto;
   background-color: var(--main-bg);
 }
 
@@ -12,6 +12,12 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  position: sticky;
+  top: 0;
+  background-color: var(--main-bg);
+  padding: 16px 0;
+  z-index: 3;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .speech-header h2 {
@@ -90,6 +96,8 @@
 
 .table-controls {
   margin-bottom: 15px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* Find/Replace controls */
@@ -271,7 +279,7 @@
   background-color: #1e1e1e;
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 2;
 }
 
 .speech-table th {
@@ -613,6 +621,20 @@
   display: inline;
 }
 
+/* Search navigation highlight */
+.search-highlight-row {
+  animation: highlightPulse 0.5s ease-out;
+}
+
+@keyframes highlightPulse {
+  0% {
+    background-color: #ffeb3b;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
 .cell-display {
   padding: 6px 8px;
   font-size: 14px;
@@ -738,10 +760,10 @@
 }
 
 .import-anyway-btn {
-  background-color: #ff9800;
+  background-color: #2196F3;
   color: white;
 }
 
 .import-anyway-btn:hover {
-  background-color: #f57c00;
+  background-color: #1976D2;
 }
