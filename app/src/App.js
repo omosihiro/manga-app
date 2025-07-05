@@ -194,7 +194,8 @@ function App() {
         delayRows,
         title: 'manga-project', // You can make this customizable
         version: '1.0.0',
-        compressToWebP: options.compressToWebP || false
+        compressToWebP: options.compressToWebP || false,
+        quality: options.quality || 85
       };
       
       const result = await window.electronAPI.exportProject(projectData);

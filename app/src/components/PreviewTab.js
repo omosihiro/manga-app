@@ -180,7 +180,8 @@ function PreviewTab({ pages, speechData, language, onPagesUpdate, sweetSpot, onS
                           tail: 'left',
                           anim: 'fade'
                         };
-                        const animClass = `anim-${speechStyle.anim || 'fade'}`;
+                        const anim = speechStyle.anim || 'fade';
+                        const animClass = anim !== 'none' ? `anim-${anim}` : '';
                         const tailClass = `tail-${speechStyle.tail || 'left'}`;
                         return (
                           <div 

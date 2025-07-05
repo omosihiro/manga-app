@@ -25,7 +25,7 @@ Color parseColor(String c) {
   return colorMap[upperColor] ?? Colors.white;
 }
 
-class SpeechBubble extends StatelessWidget {
+class SpeechBubble extends StatefulWidget {
   final Map<String, dynamic> style;
   final String text;
   
@@ -36,12 +36,81 @@ class SpeechBubble extends StatelessWidget {
   });
 
   @override
+  State<SpeechBubble> createState() => _SpeechBubbleState();
+}
+
+class _SpeechBubbleState extends State<SpeechBubble> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    final anim = widget.style['anim'] ?? 'none';
+    _controller = AnimationController(
+      duration: _getAnimationDuration(anim),
+      vsync: this,
+    );
+
+    _animation = _createAnimation(anim);
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Duration _getAnimationDuration(String anim) {
+    switch (anim) {
+      case 'fade':
+        return const Duration(milliseconds: 500);
+      case 'slide':
+        return const Duration(milliseconds: 400);
+      case 'bounce':
+        return const Duration(milliseconds: 600);
+      case 'zoom':
+        return const Duration(milliseconds: 300);
+      case 'none':
+      default:
+        return const Duration(milliseconds: 0);
+    }
+  }
+
+  Animation<double> _createAnimation(String anim) {
+    switch (anim) {
+      case 'fade':
+        return Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+        );
+      case 'slide':
+        return Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+        );
+      case 'bounce':
+        return Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+        );
+      case 'zoom':
+        return Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+        );
+      case 'none':
+      default:
+        return Tween<double>(begin: 1.0, end: 1.0).animate(_controller);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final shape = style['shape'] ?? 'rounded';
-    final size = style['size'] ?? 'medium';
-    final bg = style['color'] ?? '#ffffff';
-    final borderColor = style['borderColor'] ?? '#000000';
-    final tail = style['tail'] ?? 'left';
+    final shape = widget.style['shape'] ?? 'rounded';
+    final size = widget.style['size'] ?? 'medium';
+    final bg = widget.style['color'] ?? '#ffffff';
+    final borderColor = widget.style['borderColor'] ?? '#000000';
+    final tail = widget.style['tail'] ?? 'left';
+    final anim = widget.style['anim'] ?? 'none';
 
     // Define size properties
     final sizeConfig = {
@@ -57,7 +126,7 @@ class SpeechBubble extends StatelessWidget {
       constraints: BoxConstraints(maxWidth: config['maxWidth']!),
       decoration: _getBubbleDecoration(shape, bg, borderColor),
       child: Text(
-        text,
+        widget.text,
         style: TextStyle(
           fontSize: config['fontSize'],
           color: Colors.black,
@@ -66,8 +135,9 @@ class SpeechBubble extends StatelessWidget {
     );
 
     // Add tail decorations for specific shapes
+    Widget bubbleWithTail;
     if (shape == 'cloud' || shape == 'thought') {
-      return Stack(
+      bubbleWithTail = Stack(
         clipBehavior: Clip.none,
         children: [
           bubble,
@@ -76,16 +146,58 @@ class SpeechBubble extends StatelessWidget {
         ],
       );
     } else if (shape == 'sharp') {
-      return Stack(
+      bubbleWithTail = Stack(
         clipBehavior: Clip.none,
         children: [
           bubble,
           _getSharpTail(bg, borderColor),
         ],
       );
+    } else if (shape == 'rounded') {
+      bubbleWithTail = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          bubble,
+          _getRoundedTail(bg, borderColor),
+        ],
+      );
+    } else {
+      bubbleWithTail = bubble;
     }
 
-    return bubble;
+    // Apply animation based on type
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        switch (anim) {
+          case 'fade':
+            return Opacity(
+              opacity: _animation.value,
+              child: bubbleWithTail,
+            );
+          case 'slide':
+            return Opacity(
+              opacity: _animation.value,
+              child: Transform.translate(
+                offset: Offset(0, -20 * (1 - _animation.value)),
+                child: bubbleWithTail,
+              ),
+            );
+          case 'bounce':
+          case 'zoom':
+            return Transform.scale(
+              scale: _animation.value,
+              child: Opacity(
+                opacity: _animation.value > 0.3 ? 1.0 : _animation.value / 0.3,
+                child: bubbleWithTail,
+              ),
+            );
+          case 'none':
+          default:
+            return bubbleWithTail;
+        }
+      },
+    );
   }
 
   BoxDecoration _getBubbleDecoration(String shape, String bg, String borderColor) {
@@ -134,7 +246,7 @@ class SpeechBubble extends StatelessWidget {
   }
 
   List<Widget> _getCloudTail(String bg, String borderColor) {
-    final isRight = style['tail'] == 'right';
+    final isRight = widget.style['tail'] == 'right';
     return [
       Positioned(
         bottom: -10,
@@ -168,7 +280,7 @@ class SpeechBubble extends StatelessWidget {
   }
 
   List<Widget> _getThoughtTail(String bg, String borderColor) {
-    final isRight = style['tail'] == 'right';
+    final isRight = widget.style['tail'] == 'right';
     return [
       Positioned(
         bottom: -12,
@@ -201,8 +313,24 @@ class SpeechBubble extends StatelessWidget {
     ];
   }
 
+  Widget _getRoundedTail(String bg, String borderColor) {
+    final isRight = widget.style['tail'] == 'right';
+    return Positioned(
+      bottom: -8,
+      left: isRight ? null : 20,
+      right: isRight ? 20 : null,
+      child: CustomPaint(
+        size: const Size(16, 8),
+        painter: TrianglePainter(
+          fillColor: parseColor(bg),
+          borderColor: parseColor(borderColor),
+        ),
+      ),
+    );
+  }
+
   Widget _getSharpTail(String bg, String borderColor) {
-    final isRight = style['tail'] == 'right';
+    final isRight = widget.style['tail'] == 'right';
     return Positioned(
       bottom: -10,
       left: isRight ? null : 20,

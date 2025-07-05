@@ -4,6 +4,7 @@ import './ExportDialog.css';
 function ExportDialog({ isOpen, onClose, onExport, isExporting }) {
   const [compressToWebP, setCompressToWebP] = useState(false);
   const [exportPath, setExportPath] = useState('');
+  const [quality, setQuality] = useState(85);
 
   useEffect(() => {
     if (isOpen && window.electronAPI) {
@@ -14,7 +15,7 @@ function ExportDialog({ isOpen, onClose, onExport, isExporting }) {
   }, [isOpen]);
 
   const handleExport = () => {
-    onExport({ compressToWebP });
+    onExport({ compressToWebP, quality });
   };
 
   const handleOpenFolder = async () => {
@@ -52,11 +53,39 @@ function ExportDialog({ isOpen, onClose, onExport, isExporting }) {
               onChange={(e) => setCompressToWebP(e.target.checked)}
               disabled={isExporting}
             />
-            <span>画像をWebPに圧縮 (品質 85)</span>
+            <span>画像をWebPに圧縮</span>
             <span className="option-description">
               PNGファイルをWebP形式に変換してファイルサイズを削減します
             </span>
           </label>
+          
+          {compressToWebP && (
+            <div className="quality-control">
+              <label htmlFor="quality-slider">
+                圧縮品質: <span className="quality-value">{quality}%</span>
+              </label>
+              <div className="slider-container">
+                <span className="slider-label">50</span>
+                <input
+                  id="quality-slider"
+                  type="range"
+                  min="50"
+                  max="100"
+                  step="5"
+                  value={quality}
+                  onChange={(e) => setQuality(parseInt(e.target.value))}
+                  className="quality-slider"
+                  disabled={isExporting}
+                />
+                <span className="slider-label">100</span>
+              </div>
+              <div className="quality-hint">
+                {quality >= 90 ? '高品質 - ファイルサイズ大' : 
+                 quality >= 70 ? '標準品質 - バランス良好' : 
+                 '低品質 - ファイルサイズ小'}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="export-dialog-actions">

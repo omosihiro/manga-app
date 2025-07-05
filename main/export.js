@@ -27,9 +27,10 @@ async function exportProject(data, outputDir) {
         const buffer = Buffer.from(base64Data, 'base64');
         
         if (data.compressToWebP) {
-          // Convert to WebP with quality 85
+          // Convert to WebP with specified quality
+          const quality = data.quality || 85;
           const webpBuffer = await sharp(buffer)
-            .webp({ quality: 85 })
+            .webp({ quality })
             .toBuffer();
           imageBuffers.push({ buffer: webpBuffer, index: i, extension: 'webp' });
         } else {
